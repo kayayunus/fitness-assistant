@@ -1,0 +1,67 @@
+/* Custom CSS with clamp and Apple-inspired touches */
+:root {
+  /* Using clamp for responsive typography to prevent overflow */
+  --text-xs: clamp(0.70rem, 1.5vw, 0.75rem);
+  --text-sm: clamp(0.80rem, 2vw, 0.875rem);
+  --text-base: clamp(0.95rem, 2.5vw, 1rem);
+  --text-lg: clamp(1.05rem, 3vw, 1.125rem);
+  --text-xl: clamp(1.15rem, 3.5vw, 1.25rem);
+  --text-2xl: clamp(1.3rem, 4vw, 1.5rem);
+  --text-3xl: clamp(1.5rem, 5vw, 1.875rem);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Typography Overrides based on viewports correctly without clipping */
+.text-xs { font-size: var(--text-xs) !important; line-height: 1.4; }
+.text-sm { font-size: var(--text-sm) !important; line-height: 1.4; }
+.text-base { font-size: var(--text-base) !important; line-height: 1.5; }
+.text-lg { font-size: var(--text-lg) !important; line-height: 1.5; }
+.text-xl { font-size: var(--text-xl) !important; line-height: 1.2; }
+.text-2xl { font-size: var(--text-2xl) !important; line-height: 1.2; }
+.text-3xl { font-size: var(--text-3xl) !important; line-height: 1.1; }
+
+.font-sf { font-family: -apple-system, 'SF Pro Display', sans-serif; }
+
+/* Glassmorphism Classes */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.glass-active {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Hide scrollbar for clean UI but allow scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Micro animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Safe Area Support */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
