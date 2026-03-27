@@ -37,12 +37,12 @@ let state = {
 const defaultPrograms = [
     {
         id: 'day1',
-        title: 'Gün 1 (Full Body)',
-        desc: 'Isınma, Chest, Lat, Bacak, Plank',
+        title: 'Gün 1 (Hipertansiyon/Böbrek Odaklı)',
+        desc: 'Chest Press, Lat Pulldown, 120-130 bpm limitleri',
         exercises: [
-            { name: 'Isınma', sets: 1, reps: '10dk', time: 600 },
-            { name: 'Chest Press', sets: 3, reps: '12', time: 60 },
-            { name: 'Lat Pulldown', sets: 3, reps: '12', time: 60 },
+            { name: 'Isınma (120 bpm altı)', sets: 1, reps: '10dk', time: 600 },
+            { name: 'Chest Press (Nefes tutmadan)', sets: 3, reps: '12', time: 60 },
+            { name: 'Lat Pulldown (Nefes tutmadan)', sets: 3, reps: '12', time: 60 },
             { name: 'Lateral Raise', sets: 3, reps: '12', time: 60 },
             { name: 'Leg Press', sets: 3, reps: '12', time: 60 },
             { name: 'Plank', sets: 3, reps: '20sn', time: 20 }
@@ -102,13 +102,17 @@ function init() {
 }
 
 function loadState() {
-    const saved = localStorage.getItem('fitnessAppState');
-    if (saved) {
-        state = { ...state, ...JSON.parse(saved) };
-    }
-    const savedCustom = localStorage.getItem('fitnessCustomPrograms');
-    if (savedCustom) {
-        customPrograms = JSON.parse(savedCustom);
+    try {
+        const saved = localStorage.getItem('fitnessAppState');
+        if (saved !== null && saved !== "null" && saved !== "undefined") {
+            state = { ...state, ...JSON.parse(saved) };
+        }
+        const savedCustom = localStorage.getItem('fitnessCustomPrograms');
+        if (savedCustom !== null && savedCustom !== "null" && savedCustom !== "undefined") {
+            customPrograms = JSON.parse(savedCustom);
+        }
+    } catch (err) {
+        console.error("Local storage error:", err);
     }
 }
 
