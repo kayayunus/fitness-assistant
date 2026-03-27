@@ -40,9 +40,8 @@ const defaultPrograms = [
         title: 'Gün 1 (Hipertansiyon/Böbrek Odaklı)',
         desc: 'Chest Press, Lat Pulldown, 120-130 bpm limitleri',
         exercises: [
-            { name: 'Isınma (120 bpm altı)', sets: 1, reps: '10dk', time: 600 },
-            { name: 'Chest Press (Nefes tutmadan)', sets: 3, reps: '12', time: 60 },
-            { name: 'Lat Pulldown (Nefes tutmadan)', sets: 3, reps: '12', time: 60 },
+            { name: 'Chest Press', sets: 3, reps: '12', time: 60 },
+            { name: 'Lat Pulldown', sets: 3, reps: '12', time: 60 },
             { name: 'Lateral Raise', sets: 3, reps: '12', time: 60 },
             { name: 'Leg Press', sets: 3, reps: '12', time: 60 },
             { name: 'Plank', sets: 3, reps: '20sn', time: 20 }
@@ -53,7 +52,7 @@ const defaultPrograms = [
         title: 'Gün 2 (Kardiyo/Mobilite)',
         desc: 'Aktif dinlenme ve esneklik.',
         exercises: [
-            { name: 'Hafif Yürüyüş', sets: 1, reps: '20-30dk (110-120bpm)', time: null },
+            { name: 'Yürüyüş (110-120 bpm)', sets: 1, reps: '20-30dk', time: null },
             { name: 'Mobilite/Esneme', sets: 1, reps: '10dk', time: null },
             { name: 'Yoga', sets: 1, reps: '15dk', time: null }
         ]
@@ -63,12 +62,10 @@ const defaultPrograms = [
         title: 'Gün 3 (Full Body/Kardiyo)',
         desc: 'Güç ve Kondisyon karışımı.',
         exercises: [
-            { name: 'Bisiklet', sets: 1, reps: '5-7dk (Isınma)', time: null },
             { name: 'Incline Press', sets: 3, reps: '12', time: 60 },
             { name: 'Seated Row', sets: 3, reps: '12', time: 60 },
             { name: 'Shoulder Press', sets: 3, reps: '12', time: 60 },
-            { name: 'Bodyweight Squat', sets: 3, reps: '15', time: 45 },
-            { name: 'Kardiyo', sets: 1, reps: '15dk', time: null }
+            { name: 'Bodyweight Squat', sets: 3, reps: '15', time: 45 }
         ]
     },
     {
@@ -76,7 +73,6 @@ const defaultPrograms = [
         title: 'Gün 4 (Kardiyo/Core)',
         desc: 'Merkez bölge (Core) ve yağ yakımı.',
         exercises: [
-            { name: 'Yürüyüş', sets: 1, reps: '25dk', time: null },
             { name: 'Dead Bug', sets: 3, reps: '12', time: 45 },
             { name: 'Bird Dog', sets: 3, reps: '12', time: 45 },
             { name: 'Side Plank', sets: 3, reps: '15s', time: 30 }
@@ -156,23 +152,27 @@ function checkDailyReset() {
 
 // --- NAVIGATION & VIEWS ---
 function navigateto(viewId) {
-    viewSections.forEach(sec => {
-        if(sec.id === 'view-' + viewId) {
-            sec.classList.remove('hidden');
-        } else {
-            sec.classList.add('hidden');
-        }
-    });
+    try {
+        viewSections.forEach(sec => {
+            if(sec.id === 'view-' + viewId) {
+                sec.classList.remove('hidden');
+            } else {
+                sec.classList.add('hidden');
+            }
+        });
 
-    navButtons.forEach(btn => {
-        if(btn.dataset.target === viewId) {
-            btn.classList.add('text-blue-500');
-            btn.classList.remove('text-slate-500');
-        } else {
-            btn.classList.remove('text-blue-500');
-            btn.classList.add('text-slate-500');
-        }
-    });
+        navButtons.forEach(btn => {
+            if(btn.dataset.target === viewId) {
+                btn.classList.add('text-blue-500');
+                btn.classList.remove('text-slate-500');
+            } else {
+                btn.classList.remove('text-blue-500');
+                btn.classList.add('text-slate-500');
+            }
+        });
+    } catch (err) {
+        console.error("Navigation error:", err);
+    }
 }
 
 function showOnboarding() {
@@ -191,36 +191,58 @@ function showMainApp() {
 // --- ONBOARDING ACTIONS ---
 document.getElementById('onboarding-form').addEventListener('submit', (e) => {
     e.preventDefault();
-    state.user.name = document.getElementById('user-name').value;
-    state.user.height = parseFloat(document.getElementById('user-height').value);
-    const weight = parseFloat(document.getElementById('user-weight').value);
-    state.user.weight = weight;
-    state.user.targetWeight = parseFloat(document.getElementById('user-target-weight').value);
-    state.user.setupComplete = true;
-    
-    state.weightHistory.push({ date: getTodayString(), weight: weight });
-    
-    saveState();
-    updateUI();
-    showMainApp();
+    try {
+        const nameInput = document.getElementById('user-name').value.trim();
+        const heightInput = document.getElementById('user-height').value;
+        const weightInput = document.getElementById('user-weight').value;
+        
+        if (!nameInput || !heightInput || !weightInput) {
+            alert("Lütfen İsim, Boy ve Kilo alanlarını doldurduğunuzdan emin olun.");
+            return;
+        }
+
+        const height = parseFloat(heightInput);
+        const weight = parseFloat(weightInput);
+        const targetInput = document.getElementById('user-target-weight').value;
+        const targetWeight = targetInput ? parseFloat(targetInput) : weight;
+
+        state.user.name = nameInput;
+        state.user.height = height;
+        state.user.weight = weight;
+        state.user.targetWeight = targetWeight;
+        state.user.setupComplete = true;
+        
+        state.weightHistory.push({ date: getTodayString(), weight: weight });
+        
+        saveState();
+        updateUI();
+        showMainApp();
+    } catch(err) {
+        console.error("Onboarding submission failed:", err);
+        alert("Kayıt tamamlanamadı. Konsol hatalarını kontrol ediniz.");
+    }
 });
 
 // --- UI UPDATES ---
 function updateUI() {
-    if(!state.user.setupComplete) return;
+    try {
+        if(!state.user.setupComplete) return;
 
-    document.getElementById('display-name').textContent = state.user.name;
-    document.getElementById('streak-days').textContent = state.streak.days;
+        document.getElementById('display-name').textContent = state.user.name;
+        document.getElementById('streak-days').textContent = state.streak.days;
 
-    document.getElementById('water-amount').textContent = state.water.amount;
-    document.getElementById('calorie-amount').textContent = state.calorie.amount;
-    
-    const waterGoal = 3000; 
-    let pct = Math.min((state.water.amount / waterGoal) * 100, 100);
-    document.getElementById('water-progress-bg').style.height = `${pct}%`;
+        document.getElementById('water-amount').textContent = state.water.amount;
+        document.getElementById('calorie-amount').textContent = state.calorie.amount;
+        
+        const waterGoal = 3000; 
+        let pct = Math.min((state.water.amount / waterGoal) * 100, 100);
+        document.getElementById('water-progress-bg').style.height = `${pct}%`;
 
-    renderWorkouts();
-    renderWeightChart();
+        renderWorkouts();
+        renderWeightChart();
+    } catch (err) {
+        console.error("UI update failed:", err);
+    }
 }
 
 // --- WORKOUT LOGIC ---
