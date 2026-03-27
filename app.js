@@ -4,11 +4,11 @@
 lucide.createIcons();
 
 // Elements
-const onboardingView = document.getElementById('onboarding');
-const mainContent = document.getElementById('main-content');
-const bottomNav = document.getElementById('bottom-nav');
-const viewSections = document.querySelectorAll('.view-section');
-const navButtons = document.querySelectorAll('.nav-btn');
+let onboardingView;
+let mainContent;
+let bottomNav;
+let viewSections;
+let navButtons;
 
 // --- STATE MANAGEMENT ---
 let state = {
@@ -86,9 +86,21 @@ const audioBell = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/28
 
 // --- INITIALIZATION ---
 function init() {
+    onboardingView = document.getElementById('onboarding');
+    mainContent = document.getElementById('main-content');
+    bottomNav = document.getElementById('bottom-nav');
+    viewSections = document.querySelectorAll('.view-section');
+    navButtons = document.querySelectorAll('.nav-btn');
+
     loadState();
     checkDailyReset();
     
+    // Attach event listeners safely
+    const onboardingForm = document.getElementById('onboarding-form');
+    if (onboardingForm) {
+        onboardingForm.addEventListener('submit', handleOnboardingSubmit);
+    }
+
     if (state.user.setupComplete) {
         showMainApp();
         updateUI();
@@ -101,11 +113,19 @@ function loadState() {
     try {
         const saved = localStorage.getItem('fitnessAppState');
         if (saved !== null && saved !== "null" && saved !== "undefined") {
-            state = { ...state, ...JSON.parse(saved) };
+            const parsed = JSON.parse(saved);
+            state = { ...state, ...parsed };
+            // Structural fallback checks
+            if (!state.user) state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false };
+            if (!state.streak) state.streak = { days: 0, lastDate: null };
+            if (!state.water) state.water = { amount: 0, date: null };
+            if (!state.calorie) state.calorie = { amount: 0, date: null };
+            if (!Array.isArray(state.weightHistory)) state.weightHistory = [];
         }
         const savedCustom = localStorage.getItem('fitnessCustomPrograms');
         if (savedCustom !== null && savedCustom !== "null" && savedCustom !== "undefined") {
-            customPrograms = JSON.parse(savedCustom);
+            const parsedCustom = JSON.parse(savedCustom);
+            customPrograms = Array.isArray(parsedCustom) ? parsedCustom : [];
         }
     } catch (err) {
         console.error("Local storage error:", err);
@@ -182,14 +202,22 @@ function showOnboarding() {
 }
 
 function showMainApp() {
-    onboardingView.classList.add('hidden');
-    mainContent.classList.remove('hidden');
-    bottomNav.classList.remove('hidden');
+    if (onboardingView) {
+        onboardingView.style.display = 'none';
+        onboardingView.classList.add('hidden');
+    }
+    if (mainContent) {
+        mainContent.style.display = 'flex';
+        mainContent.classList.remove('hidden');
+    }
+    if (bottomNav) {
+        bottomNav.classList.remove('hidden');
+    }
     navigateto('dashboard');
 }
 
 // --- ONBOARDING ACTIONS ---
-document.getElementById('onboarding-form').addEventListener('submit', (e) => {
+function handleOnboardingSubmit(e) {
     e.preventDefault();
     try {
         const nameInput = document.getElementById('user-name').value.trim();
@@ -221,7 +249,7 @@ document.getElementById('onboarding-form').addEventListener('submit', (e) => {
         console.error("Onboarding submission failed:", err);
         alert("Kayıt tamamlanamadı. Konsol hatalarını kontrol ediniz.");
     }
-});
+}
 
 // --- UI UPDATES ---
 function updateUI() {
