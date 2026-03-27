@@ -532,10 +532,15 @@ function openProfileEdit() {
 }
 
 function confirmReset() {
-    if(confirm("Emin misiniz? Tüm ilerlemeleriniz, profiliniz ve serileriniz kalıcı olarak silinecektir.")) {
-        localStorage.removeItem('fitnessAppState');
-        localStorage.removeItem('fitnessCustomPrograms');
-        window.location.reload();
+    try {
+        if(confirm("Emin misiniz? Tüm ilerlemeleriniz, profiliniz ve serileriniz kalıcı olarak silinecektir.")) {
+            localStorage.removeItem('fitnessAppState');
+            localStorage.removeItem('fitnessCustomPrograms');
+            window.location.reload();
+        }
+    } catch(err) {
+        console.error("Sıfırlama sırasında hata oluştu:", err);
+        alert("Bir hata oluştu, lütfen uygulamayı yenileyip tekrar deneyin.");
     }
 }
 
