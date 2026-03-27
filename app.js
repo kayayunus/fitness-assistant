@@ -1,7 +1,11 @@
 // app.js
 
-// Initialize Lucide icons
-lucide.createIcons();
+// Function to safely init icons
+function initIcons() {
+    if (typeof lucide !== 'undefined') {
+        try { lucide.createIcons(); } catch(e) { console.warn("Lucide err", e); }
+    }
+}
 
 // Elements
 let onboardingView;
@@ -107,6 +111,7 @@ function init() {
     } else {
         showOnboarding();
     }
+    initIcons();
 }
 
 function loadState() {
@@ -294,7 +299,7 @@ function renderWorkouts() {
         `;
         list.appendChild(div);
     });
-    lucide.createIcons();
+    initIcons();
 }
 
 function startWorkout(progId) {
@@ -333,7 +338,7 @@ function startWorkout(progId) {
     });
 
     document.getElementById('view-active-workout').classList.remove('hidden');
-    lucide.createIcons();
+    initIcons();
 }
 
 function toggleExerciseComplete(btn, idx) {
@@ -390,7 +395,7 @@ function addCustomExerciseRow() {
         </div>
     `;
     list.appendChild(div);
-    lucide.createIcons();
+    initIcons();
 }
 
 function saveCustomProgram() {
@@ -573,4 +578,15 @@ function confirmReset() {
 }
 
 // Initialize the app when DOM is ready
-document.addEventListener('DOMContentLoaded', init);
+function startApp() {
+    if (window.appStarted) return;
+    window.appStarted = true;
+    try { init(); } catch (e) { console.error("App init failed", e); }
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startApp);
+    window.addEventListener('load', startApp);
+} else {
+    startApp();
+}
