@@ -1,351 +1,340 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Ultimate Fitness</title>
+    <title>Fitness Assistant</title>
+    <!-- Use Tailwind purely for utility scaffolding while relying on CSS variables for strict colors -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="styles.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'slate-950': '#020617',
-                        'slate-900': '#0f172a',
-                        neon: '#39ff14',
-                        electric: '#00e5ff'
-                    }
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-slate-950 text-slate-100 h-screen w-full overflow-hidden flex flex-col items-center justify-center selection:bg-electric/30">
+<body>
 
-    <!-- ONBOARDING -->
-    <div id="onboarding-view" class="w-full h-full max-w-md mx-auto relative flex-col bg-slate-950 p-6 overflow-y-auto no-scrollbar" style="display: flex;">
-        <div class="flex-1 flex flex-col justify-center gap-6">
-            <div class="text-center mb-4 flex flex-col gap-2">
-                <i data-lucide="activity" class="w-16 h-16 mx-auto mb-2 text-neon animate-pulse-ring rounded-full"></i>
-                <h1 class="text-3xl font-bold tracking-tight text-white m-0">Ultimate Fitness</h1>
-                <p class="text-slate-400 text-sm m-0">Kendinize meydan okuyun.</p>
+    <!-- ONBOARDING (Fullscreen Cover) -->
+    <div id="onboarding-view" class="absolute inset-0 z-[200] flex-col p-6 overflow-y-auto no-scrollbar justify-center" style="background-color: var(--bg-primary); display: flex;">
+        <div class="flex-1 flex flex-col justify-center gap-8 max-w-md mx-auto w-full">
+            <div class="text-center flex flex-col gap-3">
+                <div class="mx-auto w-20 h-20 rounded-3xl bg-action flex items-center justify-center shadow-lg">
+                    <i data-lucide="activity" class="w-10 h-10 text-white"></i>
+                </div>
+                <h1 class="text-3xl font-bold tracking-tight">Fitness Assistant</h1>
+                <p class="text-sm" style="color: var(--text-secondary)">Sınırlarını aşmaya başla.</p>
             </div>
             
             <form id="onboarding-form" class="flex flex-col gap-4">
-                <div class="flex flex-col gap-1">
-                    <label class="text-xs font-medium text-slate-400 ml-1" for="user-name">Adın Ne?</label>
-                    <input type="text" id="user-name" required class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 text-base text-white focus:outline-none focus:ring-2 focus:ring-neon transition-all placeholder-slate-600" placeholder="Adınız">
-                </div>
+                <input type="text" id="user-name" required class="native-input" placeholder="Adınız">
                 <div class="grid grid-cols-2 gap-4">
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-medium text-slate-400 ml-1" for="user-height">Boy (cm)</label>
-                        <input type="number" id="user-height" required min="100" max="250" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 text-base text-white focus:outline-none focus:ring-2 focus:ring-neon transition-all placeholder-slate-600" placeholder="175">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label class="text-xs font-medium text-slate-400 ml-1" for="user-weight">Kilo (kg)</label>
-                        <input type="number" id="user-weight" required min="30" max="300" step="0.1" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 text-base text-white focus:outline-none focus:ring-2 focus:ring-neon transition-all placeholder-slate-600" placeholder="70">
-                    </div>
+                    <input type="number" id="user-height" required min="100" max="250" class="native-input" placeholder="Boy (cm)">
+                    <input type="number" id="user-weight" required min="30" max="300" step="0.1" class="native-input" placeholder="Kilo (kg)">
                 </div>
-                <!-- Flex-col ve Gap kullanımı kural 1'i uygulamak içindir -->
-                <button type="submit" class="nav-btn w-full bg-neon text-slate-950 hover:bg-green-400 font-bold rounded-xl py-4 mt-6 transition-all flex items-center justify-center gap-2 shadow-neon">
+                <button type="submit" class="touch-target w-full bg-action font-semibold rounded-2xl py-4 mt-4 transition-all flex items-center justify-center gap-2 shadow-lg">
                     <span>Başla</span>
-                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
                 </button>
             </form>
         </div>
     </div>
 
-    <!-- MAIN APP GRID LAYOUT -->
-    <div id="main-app" class="app-grid max-w-md bg-slate-950 shadow-2xl relative" style="display: none;">
+    <!-- MAIN APP STRUCTURE (Fixed Native Grid) -->
+    <div id="main-app" class="native-app-layout" style="display: none;">
         
-        <!-- HEADER -->
-        <header id="app-header" class="pt-safe px-5 pb-3 glass-active z-20 sticky top-0 flex justify-between items-end border-b border-white/5">
-            <div class="flex flex-col gap-1 w-full min-w-0 pr-2">
-                <h2 id="header-title" class="text-2xl font-bold text-white truncate">Ultimate Fitness</h2>
-                <p id="header-subtitle" class="text-slate-400 text-sm truncate">Bugün sınırlarını zorla.</p>
+        <!-- HEADER (Fixed Top) -->
+        <header id="app-header" class="pt-safe px-5 pb-3 glass-header-nav z-20 flex justify-between items-end min-h-[80px]">
+            <div class="flex flex-col gap-1 min-w-0 pr-2 pb-1">
+                <h2 id="header-title" class="text-2xl font-bold truncate">Özet</h2>
+                <p id="header-subtitle" class="text-sm truncate" style="color: var(--text-secondary)">Bugün nasılsın?</p>
             </div>
-            <button onclick="navigateto('settings')" class="p-2 glass rounded-full text-slate-400 hover:text-white transition-colors shrink-0 nav-btn flex items-center justify-center">
-                <i data-lucide="settings" class="w-5 h-5"></i>
-            </button>
+            <!-- Empty slot for symmetrical UI or right actions if needed -->
+            <div class="w-10 h-10"></div>
         </header>
 
-        <!-- SCROLLABLE CONTENT AREA -->
+        <!-- SCROLLABLE CONTENT (flex-1) -->
         <main id="app-content" class="scroll-area p-5 relative z-10 w-full flex flex-col gap-6">
             
             <!-- Dashboard View -->
-            <section id="view-dashboard" class="flex flex-col gap-6 w-full animate-fade-in" style="display: flex;">
-                <button onclick="openCalendar()" class="glass rounded-2xl p-5 flex items-center justify-between gap-4 w-full text-left transition-colors hover:bg-white/5 active:bg-white/10 nav-btn">
-                    <div class="flex flex-col gap-1 min-w-0">
-                        <h3 class="text-sm font-medium text-slate-300 flex items-center gap-2 truncate">
-                            <i data-lucide="activity" class="w-4 h-4 text-neon shrink-0"></i> Mevcut Seri
+            <section id="view-dashboard" class="flex flex-col gap-5 w-full animate-slide-up" style="display: flex;">
+                <button onclick="openCalendar()" class="card flex items-center justify-between gap-4 w-full touch-target">
+                    <div class="flex flex-col gap-1 min-w-0 text-left">
+                        <h3 class="text-sm font-semibold flex items-center gap-2" style="color: var(--text-tertiary)">
+                            <i data-lucide="award" class="w-4 h-4 text-energy"></i> SERİ
                         </h3>
-                        <p class="text-3xl font-bold text-white truncate"><span id="streak-days">0</span> <span class="text-lg text-slate-400 font-normal">gün</span></p>
+                        <p class="text-3xl font-bold"><span id="streak-days">0</span> <span class="text-lg font-normal" style="color: var(--text-secondary)">gün</span></p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-neon/10 flex items-center justify-center border border-neon/30 shrink-0">
-                        <i data-lucide="calendar" class="w-6 h-6 text-neon"></i>
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center" style="background: rgba(52, 199, 89, 0.15)">
+                        <i data-lucide="calendar" class="w-6 h-6 text-energy"></i>
                     </div>
                 </button>
 
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="navigateto('workout')" class="glass hover:border-electric/50 active:glass-active rounded-2xl p-4 flex flex-col gap-3 transition-all text-left nav-btn shadow-[0_0_15px_rgba(0,229,255,0.05)]">
-                        <div class="w-10 h-10 rounded-full bg-electric/20 text-electric flex items-center justify-center shrink-0">
-                            <i data-lucide="dumbbell" class="w-5 h-5"></i>
+                    <button onclick="navigateto('workout')" class="card flex flex-col gap-3 touch-target text-left">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: rgba(0, 122, 255, 0.15);">
+                            <i data-lucide="dumbbell" class="w-5 h-5 text-action"></i>
                         </div>
-                        <div class="flex flex-col gap-1 min-w-0">
-                            <h4 class="font-semibold text-white truncate">Antrenman</h4>
-                            <p class="text-[10px] text-slate-400 truncate">Programı yönete</p>
+                        <div class="flex flex-col gap-0.5">
+                            <h4 class="font-semibold text-sm">Program</h4>
+                            <p class="text-xs" style="color: var(--text-secondary)">Antrenmanlar</p>
                         </div>
                     </button>
-                    <button onclick="navigateto('tracker')" class="glass hover:border-neon/50 active:glass-active rounded-2xl p-4 flex flex-col gap-3 transition-colors text-left nav-btn">
-                        <div class="w-10 h-10 rounded-full bg-neon/20 text-neon flex items-center justify-center shrink-0">
-                            <i data-lucide="droplet" class="w-5 h-5"></i>
+                    <button onclick="navigateto('tracker')" class="card flex flex-col gap-3 touch-target text-left">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: rgba(52, 199, 89, 0.15);">
+                            <i data-lucide="droplet" class="w-5 h-5 text-energy"></i>
                         </div>
-                        <div class="flex flex-col gap-1 min-w-0">
-                            <h4 class="font-semibold text-white truncate">Makrolar</h4>
-                            <p class="text-[10px] text-slate-400 truncate">Su ve Kalori.</p>
+                        <div class="flex flex-col gap-0.5">
+                            <h4 class="font-semibold text-sm">Makro</h4>
+                            <p class="text-xs" style="color: var(--text-secondary)">Su & Kalori</p>
                         </div>
                     </button>
                 </div>
             </section>
 
-            <!-- Workout View (Program List & Management) -->
-            <section id="view-workout" class="flex flex-col gap-5 w-full animate-fade-in" style="display: none;">
-                <div class="flex justify-between items-center bg-electric/10 border border-electric/20 p-4 rounded-xl">
-                    <div class="flex items-center gap-3">
-                        <i data-lucide="clipboard-list" class="text-electric w-6 h-6"></i>
-                        <h3 class="font-medium text-electric text-sm">Program Yönetimi</h3>
-                    </div>
-                    <button onclick="openProgramEditor()" class="bg-electric text-slate-900 px-3 py-1.5 rounded-lg text-xs font-bold nav-btn hover:bg-cyan-300 transition-colors">YENİ EKLE</button>
+            <!-- Workout View (Program List) -->
+            <section id="view-workout" class="flex flex-col gap-5 w-full animate-slide-up" style="display: none;">
+                <div class="flex justify-between items-center mb-1">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider" style="color: var(--text-secondary)">Antrenman Günleri</h3>
+                    <button onclick="openEditorDays()" class="text-action text-sm font-semibold flex items-center gap-1 touch-target px-2">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i> Düzenle
+                    </button>
                 </div>
-
-                <div id="program-list" class="flex flex-col gap-4">
-                    <!-- Dinamik Program Kartları CRUD ile bura -->
+                <div id="workout-days-list" class="flex flex-col gap-4">
+                    <!-- Days loaded dynamically (Gün 1, Gün 2 vb) -->
                 </div>
             </section>
 
-            <!-- Active Workout View (Timer & Reps) -->
-            <section id="view-active-workout" class="flex flex-col gap-5 w-full animate-fade-in" style="display: none;">
-                <div class="flex items-center justify-between mb-2 gap-3">
-                    <button onclick="closeActiveWorkout()" class="p-2 rounded-full glass hover:bg-white/10 text-slate-300 shrink-0 nav-btn flex items-center justify-center">
+            <!-- Active Workout View -->
+            <section id="view-active-workout" class="flex flex-col gap-5 w-full animate-slide-up" style="display: none;">
+                <div class="flex items-center justify-between mb-2 gap-3 pb-2 border-b" style="border-color: var(--border-color)">
+                    <button onclick="closeActiveWorkout()" class="p-2 touch-target flex items-center justify-center" style="color: var(--text-secondary)">
                         <i data-lucide="chevron-left" class="w-6 h-6"></i>
                     </button>
-                    <h2 id="active-workout-title" class="text-lg font-bold text-white flex-1 text-center truncate">Program</h2>
-                    <div class="w-12 shrink-0"></div> <!-- Spacer for perfect centering -->
+                    <h2 id="active-workout-title" class="text-lg font-bold flex-1 text-center truncate">Gün 1</h2>
+                    <div class="w-10 shrink-0"></div> <!-- Spacer -->
                 </div>
 
-                <div id="active-exercise-list" class="flex flex-col gap-5 relative pl-4 border-l-2 border-slate-700/50 pb-32">
+                <div id="active-exercise-list" class="flex flex-col gap-5 relative pl-4 border-l-2 pb-32" style="border-color: var(--border-color)">
                     <!-- Egzersiz Öğeleri -->
                 </div>
             </section>
 
             <!-- Tracker View -->
-            <section id="view-tracker" class="flex flex-col gap-6 w-full animate-fade-in" style="display: none;">
+            <section id="view-tracker" class="flex flex-col gap-6 w-full animate-slide-up" style="display: none;">
                 <!-- Calories Row -->
-                <div class="glass rounded-2xl p-5 flex flex-col gap-4 relative overflow-hidden">
+                <div class="card flex flex-col gap-4 relative overflow-hidden">
                     <div class="flex items-center justify-between gap-4">
-                        <div class="flex flex-col gap-1 min-w-0">
-                            <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider truncate">GÜNLÜK HEDEF</span>
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-semibold uppercase" style="color: var(--text-secondary)">Günlük Calori</span>
                             <div class="flex items-end gap-1">
-                                <span class="text-3xl font-bold text-white truncate leading-none"><span id="calorie-amount">0</span></span>
-                                <span class="text-sm font-normal text-slate-500 mb-1">/ <span id="calorie-goal">2000</span> kcal</span>
+                                <span class="text-3xl font-bold leading-none"><span id="calorie-amount">0</span></span>
+                                <span class="text-sm font-normal mb-1" style="color: var(--text-secondary)">/ <span id="calorie-goal">2000</span></span>
                             </div>
                         </div>
-                        <i data-lucide="flame" class="w-8 h-8 text-orange-400/80 shrink-0"></i>
+                        <button onclick="editTrackerGoal('calorie')" class="w-8 h-8 rounded-full flex items-center justify-center" style="background: var(--bg-tertiary)">
+                            <i data-lucide="settings-2" class="w-4 h-4" style="color: var(--text-secondary)"></i>
+                        </button>
                     </div>
                     
-                    <div class="w-full bg-slate-800 rounded-full h-2 mb-2">
-                        <div id="cal-progress-bar" class="bg-gradient-to-r from-orange-600 to-orange-400 h-2 rounded-full transition-all duration-500" style="width: 0%"></div>
+                    <div class="w-full h-2 rounded-full overflow-hidden" style="background: var(--bg-tertiary)">
+                        <div id="cal-progress-bar" class="h-full bg-energy transition-all duration-500" style="width: 0%"></div>
                     </div>
 
-                    <div class="flex gap-3">
-                        <input type="number" id="calorie-input" class="flex-1 min-w-0 bg-slate-900 border border-slate-800 rounded-xl px-4 text-white focus:outline-none focus:ring-1 focus:ring-orange-500 placeholder-slate-600" placeholder="+ Kalori">
-                        <button onclick="addCalorie()" class="bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold rounded-xl px-5 nav-btn transition-colors shrink-0">Ekle</button>
+                    <div class="flex gap-2">
+                        <input type="number" id="calorie-input" class="native-input py-2 px-3 min-h-0" placeholder="+ Kalori Ekle">
+                        <button onclick="addCalorie()" class="bg-energy font-bold rounded-xl px-5 touch-target">Ekle</button>
                     </div>
                 </div>
 
                 <!-- Water Row -->
-                <div class="glass rounded-2xl p-5 relative overflow-hidden flex flex-col gap-4">
-                    <div id="water-progress-bg" class="absolute bottom-0 left-0 right-0 bg-electric/10 transition-all duration-500 ease-out z-0" style="height: 0%"></div>
-                    
-                    <div class="relative z-10 flex flex-col gap-6">
+                <div class="card flex flex-col gap-4 relative overflow-hidden">
+                    <!-- Progress Background -->
+                    <div id="water-progress-bg" class="absolute bottom-0 left-0 right-0 transition-all duration-500 ease-out z-0" style="height: 0%; background: rgba(0, 122, 255, 0.1);"></div>
+                    <div class="relative z-10 flex flex-col gap-4">
                         <div class="flex items-center justify-between gap-4">
-                            <div class="flex flex-col gap-1 min-w-0">
-                                <span class="text-slate-400 text-xs font-semibold uppercase tracking-wider truncate">Kişisel Matara</span>
-                                <span class="text-3xl font-bold text-white truncate leading-none"><span id="water-amount">0</span> <span class="text-base font-normal text-electric">ml</span></span>
+                            <div class="flex flex-col gap-1">
+                                <span class="text-xs font-semibold uppercase" style="color: var(--text-secondary)">Günlük Su</span>
+                                <div class="flex items-end gap-1">
+                                    <span class="text-3xl font-bold leading-none"><span id="water-amount">0</span></span>
+                                    <span class="text-sm font-normal mb-1" style="color: var(--text-secondary)">/ <span id="water-goal">3000</span> ml</span>
+                                </div>
                             </div>
-                            <button onclick="openCustomWaterMenu()" class="p-2 bg-slate-800/50 hover:bg-slate-700/50 rounded-full nav-btn transition-colors text-slate-400 hover:text-white border border-slate-700/50">
-                                <i data-lucide="settings-2" class="w-5 h-5"></i>
+                            <button onclick="editTrackerGoal('water')" class="w-8 h-8 rounded-full flex items-center justify-center" style="background: var(--bg-tertiary)">
+                                <i data-lucide="settings-2" class="w-4 h-4" style="color: var(--text-secondary)"></i>
                             </button>
                         </div>
                         
-                        <div class="grid grid-cols-2 gap-3">
-                            <button onclick="addWaterFromBottle()" class="bg-electric/20 hover:bg-electric/30 border border-electric/30 text-cyan-100 rounded-xl py-4 flex items-center justify-center gap-2 transition-colors nav-btn">
-                                <i data-lucide="glass-water" class="w-5 h-5 text-electric"></i>
-                                <span class="font-semibold truncate">İç (<span id="bottle-size-lbl">750</span>ml)</span>
+                        <div class="grid grid-cols-2 gap-3 mt-2">
+                            <button onclick="addWaterFromBottle()" class="flex flex-col items-center justify-center gap-1 py-3 rounded-xl border touch-target" style="background: var(--bg-tertiary); border-color: var(--border-color);">
+                                <i data-lucide="glass-water" class="w-5 h-5 text-action"></i>
+                                <span class="text-xs font-semibold">İç (<span id="bottle-size-lbl">750</span>ml)</span>
                             </button>
-                            <button onclick="addWater(200)" class="glass hover:bg-white/10 text-slate-300 rounded-xl py-4 flex items-center justify-center gap-2 transition-colors nav-btn">
-                                <i data-lucide="cup-soda" class="w-5 h-5"></i>
-                                <span class="truncate">Bardak (200)</span>
+                            <button onclick="addWater(200)" class="flex flex-col items-center justify-center gap-1 py-3 rounded-xl border touch-target" style="background: var(--bg-tertiary); border-color: var(--border-color);">
+                                <i data-lucide="cup-soda" class="w-5 h-5" style="color: var(--text-secondary)"></i>
+                                <span class="text-xs font-semibold" style="color: var(--text-secondary)">Bardak (200ml)</span>
                             </button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Stats View -->
-            <section id="view-stats" class="flex flex-col gap-6 w-full animate-fade-in" style="display: none;">
-                <div class="glass rounded-2xl p-5 flex flex-col gap-4">
-                    <h3 class="text-sm font-medium text-slate-300 flex items-center gap-2">
-                        <i data-lucide="line-chart" class="w-4 h-4 text-electric shrink-0"></i> Kilo İlerlemesi
-                    </h3>
-                    
-                    <div class="w-full relative chart-container mt-2">
-                        <canvas id="weightChart"></canvas>
-                    </div>
-                    
-                    <button onclick="updateWeightDialog()" class="w-full mt-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl py-3 text-sm font-medium text-slate-200 transition-colors nav-btn">Bugünkü Kilonu Gir</button>
-                </div>
-            </section>
-
-            <!-- Settings View -->
-            <section id="view-settings" class="flex flex-col gap-6 w-full animate-fade-in" style="display: none;">
-                <div class="glass rounded-2xl overflow-hidden flex flex-col divide-y divide-white/5 border border-white/5">
-                    <button onclick="openProfileEdit()" class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors text-left nav-btn">
+            <!-- Settings View (Apple HIG List Group) -->
+            <section id="view-settings" class="flex flex-col gap-6 w-full animate-slide-up" style="display: none;">
+                
+                <div class="list-group">
+                    <div class="list-item touch-target" onclick="openProfileEdit()">
                         <div class="flex items-center gap-3">
-                            <i data-lucide="user" class="w-5 h-5 text-slate-400 shrink-0"></i>
-                            <span class="text-slate-200 font-medium truncate">Profili Düzenle</span>
+                            <div class="w-7 h-7 rounded bg-action flex items-center justify-center"><i data-lucide="user" class="w-4 h-4 text-white"></i></div>
+                            <span class="font-medium">Profili Düzenle</span>
                         </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 shrink-0"></i>
-                    </button>
+                        <i data-lucide="chevron-right" class="w-4 h-4" style="color: var(--text-tertiary)"></i>
+                    </div>
+                    <div class="list-item touch-target" onclick="editTrackerGoal('all')">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded bg-energy flex items-center justify-center"><i data-lucide="target" class="w-4 h-4 text-white"></i></div>
+                            <span class="font-medium">Hedefleri Güncelle</span>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-4 h-4" style="color: var(--text-tertiary)"></i>
+                    </div>
+                    <div class="list-item touch-target" onclick="toggleTheme()">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded bg-slate-800 flex items-center justify-center"><i data-lucide="moon" class="w-4 h-4 text-white"></i></div>
+                            <span class="font-medium">Temayı Değiştir (Gece/Gündüz)</span>
+                        </div>
+                        <i data-lucide="refresh-cw" class="w-4 h-4" style="color: var(--text-tertiary)"></i>
+                    </div>
                 </div>
 
-                <div class="mt-4 flex flex-col gap-2">
-                    <button onclick="confirmReset()" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-500 border border-red-500/20 rounded-xl py-4 font-bold transition-colors flex items-center justify-center gap-2 nav-btn">
-                        <i data-lucide="triangle-alert" class="w-5 h-5 shrink-0"></i>
-                        VERİLERİ SIFIRLA
-                    </button>
+                <div class="list-group">
+                    <div class="list-item touch-target" onclick="confirmReset()">
+                        <div class="flex items-center gap-3">
+                            <div class="w-7 h-7 rounded bg-red-500 flex items-center justify-center"><i data-lucide="trash-2" class="w-4 h-4 text-white"></i></div>
+                            <span class="font-medium text-red-500">İlerlemeyi Sıfırla</span>
+                        </div>
+                    </div>
                 </div>
             </section>
         </main>
 
-        <!-- BOTTOM NAVIGATION -->
-        <nav id="bottom-nav" class="pb-safe glass-active z-40 bg-slate-950/95 sticky bottom-0">
+        <!-- BOTTOM NAVIGATION (Fixed Bottom) -->
+        <nav id="bottom-nav" class="pb-safe glass-header-nav nav-bottom z-40">
             <ul class="flex justify-around items-center px-1 py-1 m-0 list-none">
                 <li class="flex-1 flex justify-center">
-                    <button onclick="navigateto('dashboard')" class="nav-btn flex flex-col items-center justify-center gap-1 text-electric transition-colors w-full h-full py-2" data-target="dashboard">
+                    <button onclick="navigateto('dashboard')" class="nav-btn flex flex-col items-center justify-center gap-1 w-full h-full py-2" data-target="dashboard">
                         <i data-lucide="home" class="w-6 h-6"></i>
                         <span class="text-[10px] font-medium tracking-wide">Özet</span>
                     </button>
                 </li>
                 <li class="flex-1 flex justify-center">
-                    <button onclick="navigateto('workout')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-300 transition-colors w-full h-full py-2" data-target="workout">
+                    <button onclick="navigateto('workout')" class="nav-btn flex flex-col items-center justify-center gap-1 w-full h-full py-2" data-target="workout">
                         <i data-lucide="dumbbell" class="w-6 h-6"></i>
-                        <span class="text-[10px] font-medium tracking-wide">Antrenman</span>
+                        <span class="text-[10px] font-medium tracking-wide">Program</span>
                     </button>
                 </li>
                 <li class="flex-1 flex justify-center">
-                    <button onclick="navigateto('tracker')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-300 transition-colors w-full h-full py-2" data-target="tracker">
+                    <button onclick="navigateto('tracker')" class="nav-btn flex flex-col items-center justify-center gap-1 w-full h-full py-2" data-target="tracker">
                         <i data-lucide="droplet" class="w-6 h-6"></i>
                         <span class="text-[10px] font-medium tracking-wide">Takip</span>
                     </button>
                 </li>
                 <li class="flex-1 flex justify-center">
-                    <button onclick="navigateto('stats')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-300 transition-colors w-full h-full py-2" data-target="stats">
-                        <i data-lucide="bar-chart-2" class="w-6 h-6"></i>
-                        <span class="text-[10px] font-medium tracking-wide">Grafik</span>
+                    <button onclick="navigateto('settings')" class="nav-btn flex flex-col items-center justify-center gap-1 w-full h-full py-2" data-target="settings">
+                        <i data-lucide="settings" class="w-6 h-6"></i>
+                        <span class="text-[10px] font-medium tracking-wide">Ayarlar</span>
                     </button>
                 </li>
             </ul>
         </nav>
 
-        <!-- Overlay: Calendar Modal -->
-        <div id="modal-calendar" class="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-xl hidden flex-col p-5">
-            <div class="flex items-center justify-between mb-8 mt-4 pt-safe">
-                <button onclick="closeCalendar()" class="p-2 rounded-full glass hover:bg-white/10 text-slate-300 nav-btn">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
-                <h2 class="text-xl font-bold text-white">Apple Takvim</h2>
-                <div class="w-10"></div>
+        <!-- Modals Layout (Nested Navigation) -->
+        
+        <!-- Modal: Calendar -->
+        <div id="modal-calendar" class="modal-overlay p-5 max-w-md mx-auto">
+            <div class="flex items-center justify-between mb-6 mt-2 pt-safe">
+                <button onclick="closeModal('modal-calendar')" class="text-action font-semibold text-lg touch-target">Kapat</button>
             </div>
-            
-            <div class="glass flex-1 rounded-3xl p-6 flex flex-col gap-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-medium text-slate-200" id="cal-month-title">Kasım 2023</h3>
-                    <div class="text-xs px-2 py-1 bg-neon/10 text-neon rounded-full border border-neon/20 font-medium">Spor Günleri</div>
-                </div>
-                <!-- 7 columns Grid -->
-                <div class="grid grid-cols-7 gap-y-6 gap-x-2 text-center" id="cal-grid">
-                    <!-- JS fills this -->
+            <div class="card flex flex-col gap-4 items-center">
+                <h3 class="text-lg font-bold" id="cal-month-title">Ay Yılı</h3>
+                <div class="grid grid-cols-7 gap-y-4 gap-x-3 text-center w-full justify-items-center" id="cal-grid">
+                    <!-- Calendar Rings injected here -->
                 </div>
             </div>
         </div>
 
-        <!-- Overlay: Edit Program -->
-        <div id="modal-editor" class="absolute inset-0 z-50 bg-slate-950/95 backdrop-blur-xl hidden flex-col p-5">
-            <div class="flex items-center justify-between mb-6 mt-4 pt-safe">
-                <button onclick="closeEditor()" class="p-2 rounded-full glass hover:bg-white/10 text-slate-300 nav-btn">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
-                <h2 class="text-lg font-bold text-white">Program Düzenle</h2>
+        <!-- Modal: Edit Days List -->
+        <div id="modal-edit-days" class="modal-overlay p-0 max-w-md mx-auto">
+            <div class="flex items-center justify-between p-5 pt-safe bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
+                <button onclick="closeModal('modal-edit-days')" class="text-action font-semibold text-lg touch-target">Bitti</button>
+                <h2 class="font-bold text-lg">Program Düzenle</h2>
                 <div class="w-10"></div>
             </div>
-            <div class="flex-1 overflow-y-auto no-scrollbar space-y-4 pb-24">
-                <input type="hidden" id="edit-prog-id">
-                <input type="text" id="edit-prog-title" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-1 focus:ring-electric" placeholder="Program Adı (Örn: Gün 5)">
-                <input type="text" id="edit-prog-desc" class="w-full bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-400 focus:outline-none focus:ring-1 focus:ring-electric" placeholder="Kısa Açıklama">
+            <div class="flex-1 overflow-y-auto p-5 pb-safe">
+                <div class="list-group" id="edit-days-list">
+                    <!-- Days list injected here -->
+                </div>
+                <button onclick="addDayToProgram()" class="mt-4 text-action font-semibold flex items-center justify-center gap-2 w-full touch-target bg-[var(--bg-secondary)] rounded-xl py-4">
+                    <i data-lucide="plus-circle" class="w-5 h-5"></i> Yeni Gün Ekle
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal: Edit Exercises (Inside a Day) -->
+        <div id="modal-edit-exercises" class="modal-overlay p-0 max-w-md mx-auto z-[110]">
+            <div class="flex items-center justify-between p-5 pt-safe bg-[var(--bg-primary)] border-b border-[var(--border-color)]">
+                <button onclick="closeModal('modal-edit-exercises')" class="text-action font-semibold text-lg touch-target flex items-center gap-1">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i> Geri
+                </button>
+                <h2 class="font-bold text-lg truncate px-2" id="edit-day-title">Gün Düzenle</h2>
+                <button onclick="saveDayExercises()" class="text-action font-bold text-lg touch-target">Kaydet</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-5 pb-safe">
+                <input type="hidden" id="edit-day-id">
+                <label class="text-xs font-semibold uppercase mb-1 block" style="color: var(--text-secondary)">Gün Adı / Başlık</label>
+                <input type="text" id="edit-day-name-input" class="native-input mb-6" placeholder="Örn: Serbest Gün">
                 
-                <div class="mt-6">
-                    <h3 class="text-sm font-semibold text-electric mb-3 uppercase tracking-wider">Egzersizler</h3>
-                    <div id="edit-ex-list" class="space-y-3"></div>
-                    <button type="button" onclick="addExRow()" class="mt-4 w-full border border-dashed border-electric/40 text-electric rounded-xl py-4 flex justify-center items-center gap-2 hover:bg-electric/10 transition-colors nav-btn font-medium">
-                        <i data-lucide="plus" class="w-5 h-5"></i> Yeni Hareket
-                    </button>
+                <h3 class="text-sm font-semibold uppercase tracking-wider mb-2" style="color: var(--text-secondary)">Egzersizler</h3>
+                <div id="edit-ex-list" class="flex flex-col gap-4"></div>
+                <button onclick="addEditExRow()" class="mt-4 text-energy font-semibold flex items-center justify-center gap-2 w-full touch-target border border-dashed border-energy py-4 rounded-xl">
+                    <i data-lucide="plus" class="w-5 h-5"></i> Yeni Hareket
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal: Health Warning -->
+        <div id="modal-health" class="modal-overlay justify-center items-center p-6 text-center">
+            <div class="card max-w-sm flex flex-col items-center">
+                <div class="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+                    <i data-lucide="heart-pulse" class="w-8 h-8 text-red-500"></i>
                 </div>
-            </div>
-            <div class="absolute bottom-0 left-0 right-0 p-5 glass-active bg-slate-950/90">
-                <button onclick="saveProgram()" class="w-full bg-electric text-slate-900 hover:bg-cyan-400 rounded-xl py-4 font-bold shadow-electric transition-colors nav-btn">Kaydet</button>
+                <h2 class="text-xl font-bold mb-3">Sağlık Uyarısı</h2>
+                <ul class="text-sm space-y-3 mb-6 text-left" style="color: var(--text-secondary)">
+                    <li class="flex items-start gap-2">
+                        <i data-lucide="alert-circle" class="w-4 h-4 mt-0.5 text-red-500 shrink-0"></i>
+                        <span>Limit <b>120-130 bpm</b> arasıdır.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i data-lucide="wind" class="w-4 h-4 mt-0.5 text-action shrink-0"></i>
+                        <span>Yüklenme anında <b>nefes tutmayın</b>.</span>
+                    </li>
+                    <li class="flex items-start gap-2">
+                        <i data-lucide="droplet" class="w-4 h-4 mt-0.5 text-action shrink-0"></i>
+                        <span>Sıvı dengesine dikkat edin.</span>
+                    </li>
+                </ul>
+                <button onclick="acknowledgeHealthAndStart()" class="w-full bg-action text-white font-bold rounded-xl py-3 touch-target">
+                    Kabul Ediyorum, Başla
+                </button>
+                <button onclick="closeModal('modal-health')" class="w-full mt-2 font-medium py-3 touch-target" style="color: var(--text-secondary)">
+                    İptal
+                </button>
             </div>
         </div>
 
-        <!-- Overlay: Health Warning -->
-        <div id="modal-health" class="absolute inset-0 z-[60] bg-slate-950/98 hidden flex-col justify-center items-center p-6 text-center">
-            <div class="w-20 h-20 rounded-full bg-red-500/20 flex items-center justify-center mb-6 animate-pulse">
-                <i data-lucide="heart-pulse" class="w-10 h-10 text-red-500"></i>
-            </div>
-            <h2 class="text-2xl font-bold text-white mb-4">Sağlık Uyarısı</h2>
-            <ul class="text-slate-300 text-sm space-y-4 mb-8 text-left bg-white/5 p-5 rounded-2xl border border-white/10">
-                <li class="flex items-start gap-3">
-                    <i data-lucide="alert-circle" class="w-5 h-5 text-red-400 shrink-0 mt-0.5"></i>
-                    <span>Tansiyon ve Böbrek sağlığı için nabzı <b>120-130 bpm</b> bandında tutun.</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <i data-lucide="wind" class="w-5 h-5 text-electric shrink-0 mt-0.5"></i>
-                    <span>Ağırlık kaldırırken <b>asla nefesinizi tutmayın</b>, düzenli nefes alın.</span>
-                </li>
-                <li class="flex items-start gap-3">
-                    <i data-lucide="droplet-off" class="w-5 h-5 text-blue-400 shrink-0 mt-0.5"></i>
-                    <span>Sıvı dengesi böbrekler için kritiktir. Susuz kalmayın.</span>
-                </li>
-            </ul>
-            <button onclick="acknowledgeHealthAndStart()" class="w-full bg-neon text-slate-950 hover:bg-green-400 font-bold rounded-xl py-4 nav-btn shadow-neon transition-colors text-lg">
-                Okudum, Başla
-            </button>
-            <button onclick="cancelHealthWarning()" class="mt-4 text-slate-500 hover:text-slate-300 font-medium py-2 nav-btn">
-                İptal Et
-            </button>
-        </div>
-
-        <!-- Timer Overlay Panel (Absolute positioned within the grid safely) -->
-        <div id="timer-panel" class="absolute bottom-[80px] left-4 right-4 glass-active border border-white/10 rounded-3xl p-6 transform translate-y-[200%] transition-transform duration-300 ease-out z-50 shadow-2xl flex flex-col items-center pointer-events-none opacity-0 bg-slate-900/90">
-            <div class="w-12 h-1 bg-white/20 rounded-full mb-4 shrink-0"></div>
-            <h3 class="text-neon text-xs font-bold mb-1 uppercase tracking-wide">DİNLENME SAYACI</h3>
-            <div class="text-6xl font-black text-white mb-5 tabular-nums tracking-tight font-sf max-w-full truncate" id="timer-display">00:00</div>
+        <!-- Timer Panel Overlay -->
+        <div id="timer-panel" class="absolute bottom-[90px] left-4 right-4 glass-panel border border-[var(--border-color)] rounded-3xl p-6 transform translate-y-[200%] transition-transform duration-300 ease-out z-50 flex flex-col items-center pointer-events-none opacity-0">
+            <div class="w-10 h-1 rounded-full mb-3" style="background: var(--text-tertiary)"></div>
+            <h3 class="text-xs font-bold mb-1 uppercase tracking-wide text-action">DİNLENME SAYACI</h3>
+            <div class="text-6xl font-black mb-4 tabular-nums tracking-tight font-sf max-w-full truncate" id="timer-display">00:00</div>
             <div class="flex gap-4 w-full justify-center pointer-events-auto">
-                <button onclick="startTimer(60)" class="flex-1 min-w-0 bg-slate-800 hover:bg-slate-700 rounded-xl py-3 font-medium text-slate-300 transition-colors nav-btn border border-slate-700">+60s</button>
-                <button onclick="stopTimer()" class="flex-1 min-w-0 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl py-3 font-bold border border-red-500/30 transition-colors nav-btn">BİTİR</button>
+                <button onclick="startTimer(60)" class="flex-1 min-w-0 bg-action font-semibold text-white rounded-xl py-3 touch-target">+60s</button>
+                <button onclick="stopTimer()" class="flex-1 min-w-0 bg-red-500/20 text-red-500 font-bold border border-red-500/30 rounded-xl py-3 touch-target">Atla</button>
             </div>
         </div>
 

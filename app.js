@@ -6,26 +6,23 @@ function initIcons() {
     }
 }
 
-// Elements
+// Global Elements
 let onboardingView, mainApp, appHeader, appContent, bottomNav, viewSections, navButtons;
+
+const audioBell = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
 // --- STATE MANAGEMENT ---
 let state = {
-    user: {
-        name: '', height: null, weight: null, targetWeight: null, setupComplete: false,
-        dailyCalorieGoal: 2000
-    },
-    streak: { days: 0, lastDate: null, history: [] }, // history: ['YYYY-MM-DD']
-    water: { amount: 0, date: null, bottleSize: 750 },
-    calorie: { amount: 0, date: null },
-    weightHistory: []
+    theme: 'dark',
+    user: { name: '', height: null, weight: null, targetWeight: null, setupComplete: false },
+    streak: { days: 0, lastDate: null, history: [] },
+    water: { amount: 0, date: null, bottleSize: 750, goal: 3000 },
+    calorie: { amount: 0, date: null, goal: 2000 }
 };
 
-// HARCODED PROGRAMS AS REQUESTED
-const defaultPrograms = [
+const defaultDays = [
     {
-        id: 'day1', title: 'Gün 1 (Full Body)',
-        desc: 'Chest Press, Lat Pulldown, Lateral Raise, Leg Press, Plank',
+        id: 'd1', title: 'Gün 1 (Full Body)',
         exercises: [
             { name: 'Chest Press', sets: 3, reps: '12', time: 60 },
             { name: 'Lat Pulldown', sets: 3, reps: '12', time: 60 },
@@ -35,8 +32,7 @@ const defaultPrograms = [
         ]
     },
     {
-        id: 'day2', title: 'Gün 2 (Kardiyo/Mobilite)',
-        desc: '20-30 dk hafif yürüyüş (110-120 bpm), Yoga ve nefes',
+        id: 'd2', title: 'Gün 2 (Kardiyo/Mobilite)',
         exercises: [
             { name: 'Hafif Yürüyüş (110-120bpm)', sets: 1, reps: '25dk', time: null },
             { name: 'Nefes Egzersizleri', sets: 1, reps: '5dk', time: null },
@@ -44,8 +40,7 @@ const defaultPrograms = [
         ]
     },
     {
-        id: 'day3', title: 'Gün 3 (Full Body/Kardiyo)',
-        desc: 'Bisiklet, Incline Press, Seated Row, Squat',
+        id: 'd3', title: 'Gün 3 (Full Body/Kardiyo)',
         exercises: [
             { name: 'Bisiklet Isınma', sets: 1, reps: '10dk', time: null },
             { name: 'Incline Press', sets: 3, reps: '12', time: 60 },
@@ -55,19 +50,17 @@ const defaultPrograms = [
         ]
     },
     {
-        id: 'day4', title: 'Gün 4 (Kardiyo/Core)',
-        desc: '25 dk yürüyüş, Dead Bug, Bird Dog, Side Plank',
+        id: 'd4', title: 'Gün 4 (Kardiyo/Core)',
         exercises: [
             { name: 'Kardiyo Yürüyüş', sets: 1, reps: '25dk', time: null },
             { name: 'Dead Bug', sets: 3, reps: '12', time: 45 },
-            { name: 'Bird Dog', sets: 3, reps: '12/Yön', time: 45 },
-            { name: 'Side Plank', sets: 3, reps: '20s/Yön', time: 30 }
+            { name: 'Bird Dog', sets: 3, reps: '12', time: 45 },
+            { name: 'Side Plank', sets: 3, reps: '20s', time: 30 }
         ]
     }
 ];
 
-let customPrograms = [];
-const audioBell = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+let customDays = [];
 
 // --- INITIALIZATION ---
 function init() {
@@ -82,6 +75,9 @@ function init() {
     loadState();
     checkDailyReset();
     
+    // Apply Theme
+    applyTheme(state.theme);
+
     const obsForm = document.getElementById('onboarding-form');
     if (obsForm) obsForm.addEventListener('submit', handleOnboardingSubmit);
 
@@ -96,29 +92,26 @@ function init() {
 
 function loadState() {
     try {
-        const saved = localStorage.getItem('ultimateFitnessState');
-        if (saved !== null && saved !== "null" && saved !== "undefined") {
+        const saved = localStorage.getItem('nativeFitnessState');
+        if (saved) {
             const parsed = JSON.parse(saved);
-            if (typeof parsed === 'object' && parsed !== null) {
-                state = { ...state, ...parsed };
-            }
+            state = { ...state, ...parsed };
         }
         
         // Strict fallback Checks
-        if (!state.user || typeof state.user !== 'object') state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false, dailyCalorieGoal: 2000 };
-        if (!state.user.dailyCalorieGoal) state.user.dailyCalorieGoal = 2000;
-        if (!state.streak || typeof state.streak !== 'object') state.streak = { days: 0, lastDate: null, history: [] };
-        if (!Array.isArray(state.streak.history)) state.streak.history = [];
-        if (!state.water || typeof state.water !== 'object') state.water = { amount: 0, date: null, bottleSize: 750 };
-        if (!state.water.bottleSize) state.water.bottleSize = 750;
-        if (!state.calorie || typeof state.calorie !== 'object') state.calorie = { amount: 0, date: null };
-        if (!Array.isArray(state.weightHistory)) state.weightHistory = [];
+        if (!state.user) state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false };
+        if (!state.streak) state.streak = { days: 0, lastDate: null, history: [] };
+        if (!state.water) state.water = { amount: 0, date: null, bottleSize: 750, goal: 3000 };
+        if (!state.water.goal) state.water.goal = 3000;
+        if (!state.calorie) state.calorie = { amount: 0, date: null, goal: 2000 };
+        if (!state.calorie.goal) state.calorie.goal = 2000;
+        if (!state.theme) state.theme = 'dark';
 
-        const savedCustom = localStorage.getItem('ultimateFitnessPrograms');
-        if (savedCustom !== null && savedCustom !== "null" && savedCustom !== "undefined") {
-            customPrograms = JSON.parse(savedCustom);
+        const savedCustom = localStorage.getItem('nativeFitnessPrograms');
+        if (savedCustom) {
+            customDays = JSON.parse(savedCustom);
         } else {
-            customPrograms = JSON.parse(JSON.stringify(defaultPrograms)); // Deep copy defaults
+            customDays = JSON.parse(JSON.stringify(defaultDays));
             saveCustomPrograms();
         }
     } catch (err) {
@@ -127,11 +120,11 @@ function loadState() {
 }
 
 function saveState() {
-    localStorage.setItem('ultimateFitnessState', JSON.stringify(state));
+    localStorage.setItem('nativeFitnessState', JSON.stringify(state));
 }
 
 function saveCustomPrograms() {
-    localStorage.setItem('ultimateFitnessPrograms', JSON.stringify(customPrograms));
+    localStorage.setItem('nativeFitnessPrograms', JSON.stringify(customDays));
 }
 
 function getTodayString() {
@@ -145,8 +138,7 @@ function checkDailyReset() {
     if (state.streak.lastDate) {
         let lastObj = new Date(state.streak.lastDate);
         let todayObj = new Date();
-        const diffTime = Math.abs(todayObj - lastObj);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        const diffDays = Math.ceil(Math.abs(todayObj - lastObj) / (1000 * 60 * 60 * 24)); 
         
         if (diffDays > 1 && today !== state.streak.lastDate) {
             state.streak.days = 0; 
@@ -167,54 +159,43 @@ function checkDailyReset() {
 // --- NAVIGATION & VIEWS ---
 function navigateto(viewId) {
     if(!viewSections) return;
-    try {
-        viewSections.forEach(sec => {
-            if(sec.id === 'view-' + viewId) {
-                sec.style.display = 'flex';
-            } else {
-                sec.style.display = 'none';
+    
+    viewSections.forEach(sec => {
+        if(sec.id === 'view-' + viewId) {
+            sec.style.display = 'flex';
+        } else {
+            sec.style.display = 'none';
+        }
+    });
+
+    if(navButtons) {
+        navButtons.forEach(btn => {
+            if(btn.dataset.target === viewId) {
+                btn.classList.add('text-action');
+                btn.style.color = 'var(--color-action-blue)';
+            } else if (btn.dataset.target) {
+                btn.classList.remove('text-action');
+                btn.style.color = 'var(--text-tertiary)';
             }
         });
-
-        if(navButtons) {
-            navButtons.forEach(btn => {
-                if(btn.dataset.target === viewId) {
-                    btn.classList.add('text-electric');
-                    btn.classList.remove('text-slate-500');
-                } else if (btn.dataset.target) {
-                    btn.classList.remove('text-electric');
-                    btn.classList.add('text-slate-500');
-                }
-            });
-        }
-        
-        const headerTitle = document.getElementById('header-title');
-        const headerSubtitle = document.getElementById('header-subtitle');
-        if(headerTitle && headerSubtitle) {
-            if(viewId === 'dashboard') {
-                headerTitle.textContent = `Tebrikler, ${state.user.name.split(' ')[0]}`;
-                headerSubtitle.textContent = "Pes etme!";
-            } else if(viewId === 'workout') {
-                headerTitle.textContent = "Pro Antrenman";
-                headerSubtitle.textContent = "Programını düzenle veya başla.";
-            } else if(viewId === 'tracker') {
-                headerTitle.textContent = "Makro & Sıvı";
-                headerSubtitle.textContent = "Bedeni besle.";
-            } else if(viewId === 'stats') {
-                headerTitle.textContent = "Gelişim";
-                headerSubtitle.textContent = "Zaman serisi grafiği.";
-            } else if(viewId === 'settings') {
-                headerTitle.textContent = "Ayarlar";
-                headerSubtitle.textContent = "Uygulama kontrolü.";
-            }
-        }
-        
-        if(appContent) appContent.scrollTop = 0;
-        if(viewId === 'stats') renderChartJs();
-
-    } catch (err) {
-        console.error("Navigation error:", err);
     }
+    
+    const headerTitle = document.getElementById('header-title');
+    const headerSubtitle = document.getElementById('header-subtitle');
+    
+    if(headerTitle && headerSubtitle) {
+        const hConfig = {
+            'dashboard': { t: `Merhaba ${state.user.name.split(' ')[0]}`, s: "Sınırlarını aş." },
+            'workout': { t: "Program", s: "Antrenman planın." },
+            'tracker': { t: "Takip", s: "Makro ve Su hedefleri." },
+            'settings': { t: "Ayarlar", s: "Uygulama kontrolü." }
+        };
+        const cur = hConfig[viewId] || { t:"", s:"" };
+        headerTitle.textContent = cur.t;
+        headerSubtitle.textContent = cur.s;
+    }
+    
+    if(appContent) appContent.scrollTop = 0;
 }
 
 function showOnboarding() {
@@ -228,36 +209,36 @@ function showMainApp() {
     navigateto('dashboard');
 }
 
+// --- THEME ---
+function toggleTheme() {
+    state.theme = state.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(state.theme);
+    saveState();
+}
+
+function applyTheme(themeVal) {
+    document.documentElement.setAttribute('data-theme', themeVal);
+}
+
 // --- ONBOARDING ACTIONS ---
 function handleOnboardingSubmit(e) {
     e.preventDefault();
     try {
         const nameInput = document.getElementById('user-name').value.trim();
-        const heightInput = document.getElementById('user-height').value;
-        const weightInput = document.getElementById('user-weight').value;
+        const height = parseFloat(document.getElementById('user-height').value);
+        const weight = parseFloat(document.getElementById('user-weight').value);
         
-        if (!nameInput || !heightInput || !weightInput) return;
-
-        const height = parseFloat(heightInput);
-        const weight = parseFloat(weightInput);
-        const targetInput = document.getElementById('user-target-weight').value;
-        const targetWeight = targetInput ? parseFloat(targetInput) : weight;
+        if (!nameInput || isNaN(height) || isNaN(weight)) return;
 
         state.user.name = nameInput;
         state.user.height = height;
         state.user.weight = weight;
-        state.user.targetWeight = targetWeight;
         
-        // Akıllı kalori hesaplama (Harris-Benedict Basit)
-        let bmr = 10 * weight + 6.25 * height - 5 * 25 + 5; // approx male 25yo
-        let goal = Math.round(bmr * 1.55); // moderate activity
-        if (targetWeight < weight) goal -= 400;
-        else if (targetWeight > weight) goal += 400;
-        state.user.dailyCalorieGoal = goal;
+        // BMR Approx -> Set initial Calorie Goal
+        let bmr = 10 * weight + 6.25 * height - 5 * 25 + 5; 
+        state.calorie.goal = Math.round(bmr * 1.55);
 
         state.user.setupComplete = true;
-        state.weightHistory.push({ date: getTodayString(), weight: weight });
-        
         saveState();
         updateUI();
         showMainApp();
@@ -268,340 +249,37 @@ function handleOnboardingSubmit(e) {
 
 // --- UI UPDATES ---
 function updateUI() {
-    try {
-        if(!state.user.setupComplete) return;
+    if(!state.user.setupComplete) return;
 
-        // Dashboard
-        const streakEl = document.getElementById('streak-days');
-        if(streakEl) streakEl.textContent = state.streak.days;
+    const streakEl = document.getElementById('streak-days');
+    if(streakEl) streakEl.textContent = state.streak.days;
 
-        // Tracker: Water
-        const waterEl = document.getElementById('water-amount');
-        if(waterEl) waterEl.textContent = state.water.amount;
-        
-        const bLabel = document.getElementById('bottle-size-lbl');
-        if (bLabel) bLabel.textContent = state.water.bottleSize;
-
-        const waterGoal = 3000; 
-        const waterBg = document.getElementById('water-progress-bg');
-        if(waterBg) {
-            let pct = Math.min((state.water.amount / waterGoal) * 100, 100);
-            waterBg.style.height = `${pct}%`;
-        }
-
-        // Tracker: Calorie
-        const calEl = document.getElementById('calorie-amount');
-        if(calEl) calEl.textContent = state.calorie.amount;
-        
-        const calGoalEl = document.getElementById('calorie-goal');
-        if(calGoalEl) calGoalEl.textContent = state.user.dailyCalorieGoal;
-
-        const calBar = document.getElementById('cal-progress-bar');
-        if(calBar) {
-            let cpct = Math.min((state.calorie.amount / state.user.dailyCalorieGoal) * 100, 100);
-            calBar.style.width = `${cpct}%`;
-            if (cpct >= 100) calBar.classList.add('bg-neon'); // Hedef aşıldığında neon
-        }
-
-        renderWorkouts();
-    } catch (err) {
-        console.error("UI update failed:", err);
-    }
-}
-
-// --- WORKOUT CRUD & MANAGEMENT ---
-function renderWorkouts() {
-    const list = document.getElementById('program-list');
-    if(!list) return;
-    list.innerHTML = '';
+    // Tracker UI
+    document.getElementById('water-amount').textContent = state.water.amount;
+    document.getElementById('water-goal').textContent = state.water.goal;
+    document.getElementById('bottle-size-lbl').textContent = state.water.bottleSize;
     
-    customPrograms.forEach(prog => {
-        const div = document.createElement('div');
-        div.className = 'glass rounded-2xl p-4 flex flex-col gap-3 transition-colors border-l-4 border-l-transparent hover:border-l-electric gap-3';
-        div.innerHTML = `
-            <div class="flex justify-between items-start">
-                <div class="flex flex-col gap-1 min-w-0 pr-3">
-                    <h3 class="font-bold text-white text-base truncate">${prog.title}</h3>
-                    <p class="text-[11px] leading-tight text-slate-400 line-clamp-2">${prog.desc || prog.exercises.length + ' Egzersiz'}</p>
-                </div>
-                <div class="flex gap-2">
-                    <button onclick="editProgram('${prog.id}')" class="p-2 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors nav-btn">
-                        <i data-lucide="edit-2" class="w-4 h-4"></i>
-                    </button>
-                    <button onclick="confirmHealthAndStart('${prog.id}')" class="bg-neon/20 hover:bg-neon/30 text-neon p-2 rounded-xl transition-colors nav-btn shadow-[0_0_10px_rgba(57,255,20,0.1)]">
-                        <i data-lucide="play" class="w-4 h-4"></i>
-                    </button>
-                </div>
-            </div>
-            
-        `;
-        list.appendChild(div);
-    });
-    initIcons();
-}
+    const waterBg = document.getElementById('water-progress-bg');
+    if(waterBg) waterBg.style.height = `${Math.min((state.water.amount / state.water.goal) * 100, 100)}%`;
 
-let pendingWorkoutId = null;
-
-function confirmHealthAndStart(progId) {
-    pendingWorkoutId = progId;
-    const cw = document.getElementById('modal-health');
-    if(cw) {
-        cw.style.display = 'flex';
-        cw.classList.remove('hidden');
-    }
-}
-
-function acknowledgeHealthAndStart() {
-    cancelHealthWarning();
-    if(pendingWorkoutId) {
-        startWorkout(pendingWorkoutId);
-    }
-}
-
-function cancelHealthWarning() {
-    pendingWorkoutId = null;
-    const cw = document.getElementById('modal-health');
-    if(cw) {
-        cw.style.display = 'none';
-        cw.classList.add('hidden');
-    }
-}
-
-function startWorkout(progId) {
-    const prog = customPrograms.find(p => p.id === progId);
-    if(!prog) return;
-
-    const titleEl = document.getElementById('active-workout-title');
-    if(titleEl) titleEl.textContent = prog.title;
+    document.getElementById('calorie-amount').textContent = state.calorie.amount;
+    document.getElementById('calorie-goal').textContent = state.calorie.goal;
     
-    const list = document.getElementById('active-exercise-list');
-    if(!list) return;
-    list.innerHTML = '';
-    
-    prog.exercises.forEach((ex, idx) => {
-        const div = document.createElement('div');
-        div.className = 'glass rounded-xl p-4 ml-6 relative flex flex-col gap-3';
-        
-        const dot = document.createElement('div');
-        dot.className = 'absolute -left-[35px] top-6 w-4 h-4 rounded-full bg-slate-800 border-[3px] border-slate-950 z-10 transition-colors shadow-[0_0_0_2px_rgba(255,255,255,0.05)]';
-        div.appendChild(dot);
+    const calBar = document.getElementById('cal-progress-bar');
+    if(calBar) calBar.style.width = `${Math.min((state.calorie.amount / state.calorie.goal) * 100, 100)}%`;
 
-        let timeBtn = ex.time ? `<button onclick="triggerTimer(${ex.time})" class="bg-electric/10 hover:bg-electric/20 text-electric border border-electric/20 px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors nav-btn"><i data-lucide="timer" class="w-4 h-4"></i> ${ex.time}s Dinlenme</button>` : '';
-
-        div.innerHTML += `
-            <div class="flex justify-between items-start gap-4 p-1">
-                <div class="flex flex-col gap-1 min-w-0">
-                    <h4 class="font-bold text-slate-100 truncate">${ex.name}</h4>
-                    <p class="text-sm text-electric/80 font-medium">${ex.sets} Set x ${ex.reps}</p>
-                </div>
-                <button onclick="toggleExerciseComplete(this, ${idx})" class="w-10 h-10 shrink-0 rounded-full glass flex items-center justify-center text-slate-500 hover:text-white hover:border-neon hover:bg-neon/30 transition-all nav-btn">
-                    <i data-lucide="check" class="w-5 h-5"></i>
-                </button>
-            </div>
-            ${timeBtn}
-        `;
-        list.appendChild(div);
-    });
-
-    navigateto('active-workout');
-    initIcons();
+    renderWorkoutDays();
 }
 
-function toggleExerciseComplete(btn, idx) {
-    btn.classList.toggle('border-neon');
-    btn.classList.toggle('bg-neon');
-    btn.classList.toggle('text-slate-950');
-    btn.classList.toggle('text-slate-500');
-    btn.classList.toggle('glass');
-    btn.classList.toggle('shadow-neon');
-    
-    const dot = btn.closest('.relative').querySelector('.absolute');
-    if(btn.classList.contains('bg-neon')) {
-        dot.classList.add('bg-neon', 'border-neon', 'shadow-neon');
-        dot.classList.remove('bg-slate-800', 'border-slate-950');
-        
-        const today = getTodayString();
-        // Record workout date in history if not present
-        if (!state.streak.history.includes(today)) {
-            state.streak.history.push(today);
-        }
-        if (state.streak.lastDate !== today) {
-            state.streak.days++;
-            state.streak.lastDate = today;
-            saveState();
-            updateUI();
-        }
-    } else {
-        dot.classList.remove('bg-neon', 'border-neon', 'shadow-neon');
-        dot.classList.add('bg-slate-800', 'border-slate-950');
-    }
+// --- MODALS HELPER ---
+function openModal(id) {
+    const m = document.getElementById(id);
+    if(m) m.style.display = 'flex';
 }
 
-function closeActiveWorkout() {
-    navigateto('workout');
-    stopTimer();
-    hideTimerPanel();
-}
-
-// --- PROGRAM EDITOR (CRUD) ---
-function openProgramEditor(id = null) {
-    const cw = document.getElementById('modal-editor');
-    if(cw) {
-        cw.style.display = 'flex';
-        cw.classList.remove('hidden');
-    }
-
-    const titleInput = document.getElementById('edit-prog-title');
-    const descInput = document.getElementById('edit-prog-desc');
-    const idInput = document.getElementById('edit-prog-id');
-    const exList = document.getElementById('edit-ex-list');
-    exList.innerHTML = '';
-    
-    if (id) {
-        const prog = customPrograms.find(p => p.id === id);
-        titleInput.value = prog.title;
-        descInput.value = prog.desc;
-        idInput.value = prog.id;
-        
-        prog.exercises.forEach(ex => {
-            addExRow(ex.name, ex.sets, ex.reps, ex.time);
-        });
-    } else {
-        titleInput.value = '';
-        descInput.value = '';
-        idInput.value = '';
-        addExRow();
-    }
-}
-
-function editProgram(id) {
-    openProgramEditor(id);
-}
-
-function closeEditor() {
-    const cw = document.getElementById('modal-editor');
-    if(cw) {
-        cw.style.display = 'none';
-        cw.classList.add('hidden');
-    }
-}
-
-function addExRow(name='', sets=3, reps='12', time='') {
-    const list = document.getElementById('edit-ex-list');
-    const div = document.createElement('div');
-    div.className = 'glass p-3 rounded-xl flex flex-col gap-2 relative';
-    div.innerHTML = `
-        <button type="button" onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><i data-lucide="x" class="w-3 h-3"></i></button>
-        <input type="text" class="ex-name w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-3 text-sm text-white" placeholder="Hareket Adı (örn: Push Up)" value="${name}">
-        <div class="flex gap-2">
-            <input type="number" class="ex-sets w-1/4 bg-slate-900 border border-slate-800 rounded-lg px-2 py-3 text-center text-sm text-white" placeholder="Set" value="${sets}">
-            <input type="text" class="ex-reps w-1/4 bg-slate-900 border border-slate-800 rounded-lg px-2 py-3 text-center text-sm text-white" placeholder="Tekrar" value="${reps}">
-            <input type="number" class="ex-time flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2 py-3 text-center text-sm text-white" placeholder="Sn (Dinlenme)" value="${time}">
-        </div>
-    `;
-    list.appendChild(div);
-    initIcons();
-}
-
-function saveProgram() {
-    const title = document.getElementById('edit-prog-title').value.trim();
-    const desc = document.getElementById('edit-prog-desc').value.trim();
-    const id = document.getElementById('edit-prog-id').value;
-    
-    if(!title) {
-        alert("Lütfen program adı girin.");
-        return;
-    }
-
-    const rows = document.querySelectorAll('#edit-ex-list > div');
-    const exercises = [];
-    rows.forEach(r => {
-        const name = r.querySelector('.ex-name').value;
-        const sets = parseInt(r.querySelector('.ex-sets').value) || 1;
-        const reps = r.querySelector('.ex-reps').value || '1';
-        const timeVal = parseInt(r.querySelector('.ex-time').value);
-        const time = isNaN(timeVal) ? null : timeVal;
-        
-        if (name) exercises.push({name, sets, reps, time});
-    });
-
-    if (exercises.length === 0) {
-        alert("En az bir egzersiz girmelisiniz.");
-        return;
-    }
-
-    if(id) {
-        // Update
-        const idx = customPrograms.findIndex(p => p.id === id);
-        if(idx !== -1) {
-            customPrograms[idx] = { id, title, desc, exercises };
-        }
-    } else {
-        // Create
-        customPrograms.push({
-            id: 'p_' + Date.now(),
-            title, desc, exercises
-        });
-    }
-
-    saveCustomPrograms();
-    renderWorkouts();
-    closeEditor();
-}
-
-// --- TIMER LOGIC ---
-let timerInterval;
-const timerDisplay = document.getElementById('timer-display');
-const timerPanel = document.getElementById('timer-panel');
-
-function triggerTimer(seconds) {
-    showTimerPanel();
-    startTimer(seconds);
-}
-
-function startTimer(seconds) {
-    clearInterval(timerInterval);
-    let timeLeft = seconds;
-    
-    updateTimerDisplay(timeLeft);
-    
-    timerInterval = setInterval(() => {
-        timeLeft--;
-        updateTimerDisplay(timeLeft);
-        
-        if(timeLeft <= 0) {
-            clearInterval(timerInterval);
-            audioBell.currentTime = 0;
-            audioBell.play().catch(e=>console.log("Audio play prevented", e));
-            setTimeout(() => hideTimerPanel(), 2500);
-        }
-    }, 1000);
-}
-
-function stopTimer() {
-    clearInterval(timerInterval);
-    updateTimerDisplay(0);
-    hideTimerPanel();
-}
-
-function updateTimerDisplay(s) {
-    if(!timerDisplay) return;
-    const mins = Math.floor(s / 60).toString().padStart(2, '0');
-    const secs = (s % 60).toString().padStart(2, '0');
-    timerDisplay.textContent = `${mins}:${secs}`;
-}
-
-function showTimerPanel() {
-    if(!timerPanel) return;
-    timerPanel.style.opacity = '1';
-    timerPanel.style.pointerEvents = 'auto';
-    timerPanel.classList.remove('translate-y-[200%]');
-}
-function hideTimerPanel() {
-    if(!timerPanel) return;
-    timerPanel.style.opacity = '0';
-    timerPanel.style.pointerEvents = 'none';
-    timerPanel.classList.add('translate-y-[200%]');
+function closeModal(id) {
+    const m = document.getElementById(id);
+    if(m) m.style.display = 'none';
 }
 
 // --- TRACKER LOGIC ---
@@ -615,175 +293,341 @@ function addWaterFromBottle() {
     addWater(state.water.bottleSize || 750);
 }
 
-function openCustomWaterMenu() {
-    const amt = prompt("Özel Matara Miktarı (ml) nedir?", state.water.bottleSize);
-    if(amt && !isNaN(amt)) {
-        state.water.bottleSize = parseInt(amt);
-        saveState();
-        updateUI();
-    }
-}
-
 function addCalorie() {
     const input = document.getElementById('calorie-input');
-    if(!input) return;
-    const cal = parseInt(input.value);
-    if(cal && !isNaN(cal)) {
-        state.calorie.amount += cal;
-        input.value = '';
-        saveState();
-        updateUI();
-    }
+    if(!input || !input.value) return;
+    state.calorie.amount += parseInt(input.value);
+    input.value = '';
+    saveState();
+    updateUI();
 }
 
-// --- STATS LOGIC (Chart.js implementation) ---
-let myChart = null;
+function editTrackerGoal(type) {
+    if (type === 'water' || type === 'all') {
+        const wGoal = prompt("Günlük Su Hedefi (ml):", state.water.goal);
+        if (wGoal && !isNaN(wGoal)) state.water.goal = parseInt(wGoal);
+        
+        const wBottle = prompt("Matara Hacmi (ml):", state.water.bottleSize);
+        if (wBottle && !isNaN(wBottle)) state.water.bottleSize = parseInt(wBottle);
+    }
+    if (type === 'calorie' || type === 'all') {
+        const cGoal = prompt("Günlük Kalori Hedefi:", state.calorie.goal);
+        if (cGoal && !isNaN(cGoal)) state.calorie.goal = parseInt(cGoal);
+    }
+    saveState();
+    updateUI();
+}
 
-function renderChartJs() {
-    const ctx = document.getElementById('weightChart');
-    if(!ctx) return;
+
+// --- WORKOUT CRUD: DAYS & EXERCISES ---
+
+function renderWorkoutDays() {
+    const list = document.getElementById('workout-days-list');
+    if(!list) return;
+    list.innerHTML = '';
     
-    if(state.weightHistory.length === 0) return;
+    customDays.forEach(day => {
+        const div = document.createElement('button');
+        div.className = 'card flex items-center justify-between touch-target text-left w-full';
+        div.onclick = () => confirmHealthAndStart(day.id);
+        
+        const left = document.createElement('div');
+        left.className = 'flex flex-col gap-1 min-w-0';
+        left.innerHTML = `
+            <h4 class="font-bold text-base truncate">${day.title}</h4>
+            <p class="text-xs truncate" style="color: var(--text-tertiary)">${day.exercises.length} Egzersiz</p>
+        `;
+        
+        const right = document.createElement('div');
+        right.className = 'w-10 h-10 rounded-full flex items-center justify-center shrink-0 border border-[var(--border-color)]';
+        right.innerHTML = `<i data-lucide="play" class="w-5 h-5" style="color: var(--color-energy-green)"></i>`;
 
-    if (myChart) {
-        myChart.destroy();
-    }
-
-    const recent = state.weightHistory.slice(-10); // last 10 entries
-    const labels = recent.map(item => item.date.substring(5)); // MM-DD
-    const data = recent.map(item => item.weight);
-
-    myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Kilo (kg)',
-                data: data,
-                borderColor: '#00e5ff',
-                backgroundColor: 'rgba(0, 229, 255, 0.1)',
-                borderWidth: 2,
-                pointBackgroundColor: '#00e5ff',
-                pointBorderColor: '#020617',
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: false }
-            },
-            scales: {
-                x: {
-                    grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
-                    ticks: { color: '#94a3b8', font: { size: 10 } }
-                },
-                y: {
-                    grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
-                    ticks: { color: '#94a3b8', font: { size: 10 } }
-                }
-            }
-        }
+        div.appendChild(left);
+        div.appendChild(right);
+        list.appendChild(div);
     });
+    initIcons();
 }
 
-function updateWeightDialog() {
-    const weight = prompt("Bugünkü kilonuzu girin:", state.user.weight);
-    if(weight && !isNaN(weight)) {
-        const parsed = parseFloat(weight);
-        state.user.weight = parsed;
+function openEditorDays() {
+    openModal('modal-edit-days');
+    renderEditorDaysList();
+}
+
+function renderEditorDaysList() {
+    const elId = 'edit-days-list';
+    const list = document.getElementById(elId);
+    if(!list) return;
+    list.innerHTML = '';
+
+    customDays.forEach(day => {
+        const div = document.createElement('div');
+        div.className = 'list-item touch-target';
+        div.onclick = () => openEditDayDetails(day.id);
+        div.innerHTML = `
+            <div class="flex flex-col gap-1 min-w-0">
+                <span class="font-medium truncate">${day.title}</span>
+                <span class="text-[10px]" style="color: var(--text-tertiary)">${day.exercises.length} Egzersiz</span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4" style="color: var(--text-tertiary)"></i>
+        `;
+        list.appendChild(div);
+    });
+    
+    if (customDays.length === 0) list.innerHTML = `<div class="p-4 text-sm text-center" style="color: var(--text-tertiary)">Hiç gün oluşturulmamış</div>`;
+    initIcons();
+}
+
+function addDayToProgram() {
+    const tempId = 'd_' + Date.now();
+    customDays.push({ id: tempId, title: 'Yeni Gün', exercises: [] });
+    saveCustomPrograms();
+    renderEditorDaysList();
+    renderWorkoutDays();
+    openEditDayDetails(tempId);
+}
+
+function openEditDayDetails(id) {
+    const day = customDays.find(d => d.id === id);
+    if(!day) return;
+
+    document.getElementById('edit-day-id').value = day.id;
+    document.getElementById('edit-day-name-input').value = day.title;
+    
+    const exList = document.getElementById('edit-ex-list');
+    exList.innerHTML = '';
+    
+    day.exercises.forEach(ex => {
+        addEditExRow(ex.name, ex.sets, ex.reps, ex.time);
+    });
+    
+    if(day.exercises.length === 0) addEditExRow();
+    
+    openModal('modal-edit-exercises');
+}
+
+function addEditExRow(name='', sets=3, reps='12', time='') {
+    const list = document.getElementById('edit-ex-list');
+    const div = document.createElement('div');
+    div.className = 'card flex flex-col gap-3 relative p-4';
+    div.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" class="absolute -top-3 -right-3 w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center shadow-lg"><i data-lucide="x" class="w-4 h-4"></i></button>
+        <input type="text" class="ex-name native-input px-3 py-2 min-h-0 text-sm" placeholder="Egzersiz Adı" value="${name}">
+        <div class="flex gap-2">
+            <input type="number" class="ex-sets native-input px-2 py-2 min-h-0 text-center text-sm w-16" placeholder="Set" value="${sets}">
+            <input type="text" class="ex-reps native-input px-2 py-2 min-h-0 text-center text-sm w-16" placeholder="Reps" value="${reps}">
+            <input type="number" class="ex-time native-input px-2 py-2 min-h-0 text-center text-sm flex-1" placeholder="Sn (Dinlenme)" value="${time}">
+        </div>
+    `;
+    list.appendChild(div);
+    initIcons();
+}
+
+function saveDayExercises() {
+    const id = document.getElementById('edit-day-id').value;
+    const title = document.getElementById('edit-day-name-input').value.trim() || 'Adsız Gün';
+    
+    const rows = document.querySelectorAll('#edit-ex-list > div');
+    const exercises = [];
+    rows.forEach(r => {
+        const name = r.querySelector('.ex-name').value;
+        const sets = parseInt(r.querySelector('.ex-sets').value) || 1;
+        const reps = r.querySelector('.ex-reps').value || '1';
+        const tv = parseInt(r.querySelector('.ex-time').value);
+        const time = isNaN(tv) ? null : tv;
+        if (name) exercises.push({name, sets, reps, time});
+    });
+
+    const dayIndex = customDays.findIndex(d => d.id === id);
+    if (dayIndex !== -1) {
+        customDays[dayIndex].title = title;
+        customDays[dayIndex].exercises = exercises;
+    }
+    
+    saveCustomPrograms();
+    renderWorkoutDays();
+    renderEditorDaysList();
+    closeModal('modal-edit-exercises');
+}
+
+// --- ACTIVE WORKOUT ---
+
+let pendingWorkoutId = null;
+
+function confirmHealthAndStart(dayId) {
+    pendingWorkoutId = dayId;
+    openModal('modal-health');
+}
+
+function acknowledgeHealthAndStart() {
+    closeModal('modal-health');
+    if(pendingWorkoutId) startWorkout(pendingWorkoutId);
+}
+
+function startWorkout(dayId) {
+    const day = customDays.find(d => d.id === dayId);
+    if(!day) return;
+
+    document.getElementById('active-workout-title').textContent = day.title;
+    const list = document.getElementById('active-exercise-list');
+    list.innerHTML = '';
+    
+    day.exercises.forEach((ex, idx) => {
+        const div = document.createElement('div');
+        div.className = 'card relative flex flex-col gap-3 ml-6 mb-2 overflow-visible';
+        
+        let timeHTML = ex.time ? `<button onclick="startTimer(${ex.time})" class="text-xs bg-[var(--bg-tertiary)] py-2 px-3 rounded-lg font-bold flex gap-1 items-center self-start text-action"><i data-lucide="timer" class="w-3 h-3"></i> ${ex.time}s Dinlenme</button>` : '';
+
+        div.innerHTML = `
+            <div class="absolute -left-[35px] top-6 w-4 h-4 rounded-full border-4 z-10 transition-colors bg-[var(--bg-secondary)] ex-dot" style="border-color: var(--bg-tertiary)"></div>
+            <div class="flex justify-between items-start gap-4">
+                <div class="flex flex-col gap-1 min-w-0">
+                    <h4 class="font-bold truncate text-base">${ex.name}</h4>
+                    <p class="text-[11px] uppercase tracking-wider font-semibold" style="color: var(--text-tertiary)">${ex.sets} Set x ${ex.reps}</p>
+                </div>
+                <button onclick="toggleExerciseComplete(this)" class="w-10 h-10 shrink-0 rounded-full flex items-center justify-center touch-target transition-all border border-[var(--border-color)] text-[var(--text-tertiary)] ex-check">
+                    <i data-lucide="check" class="w-5 h-5"></i>
+                </button>
+            </div>
+            ${timeHTML}
+        `;
+        list.appendChild(div);
+    });
+
+    navigateto('active-workout');
+    initIcons();
+}
+
+function toggleExerciseComplete(btn) {
+    const dot = btn.closest('.card').querySelector('.ex-dot');
+    const isCompleted = btn.style.backgroundColor === 'var(--color-energy-green)';
+    
+    if (isCompleted) {
+        btn.style.backgroundColor = 'transparent';
+        btn.style.borderColor = 'var(--border-color)';
+        btn.style.color = 'var(--text-tertiary)';
+        dot.style.borderColor = 'var(--bg-tertiary)';
+        dot.style.backgroundColor = 'var(--bg-secondary)';
+    } else {
+        btn.style.backgroundColor = 'var(--color-energy-green)';
+        btn.style.borderColor = 'var(--color-energy-green)';
+        btn.style.color = '#fff';
+        dot.style.borderColor = 'var(--color-energy-green)';
+        dot.style.backgroundColor = 'var(--color-energy-green)';
         
         const today = getTodayString();
-        const lastEntry = state.weightHistory[state.weightHistory.length - 1];
-        if(lastEntry && lastEntry.date === today) {
-            lastEntry.weight = parsed;
-        } else {
-            state.weightHistory.push({date: today, weight: parsed});
+        if (!state.streak.history.includes(today)) state.streak.history.push(today);
+        if (state.streak.lastDate !== today) {
+            state.streak.days++;
+            state.streak.lastDate = today;
+            saveState();
+            updateUI();
         }
-        
-        saveState();
-        if (myChart) renderChartJs();
     }
 }
 
-// --- CALENDAR LOGIC ---
-function openCalendar() {
-    const cw = document.getElementById('modal-calendar');
-    if(cw) {
-        cw.style.display = 'flex';
-        cw.classList.remove('hidden');
+function closeActiveWorkout() {
+    navigateto('workout');
+    stopTimer();
+}
+
+// --- TIMER ---
+let timerInterval;
+
+function startTimer(seconds) {
+    const tp = document.getElementById('timer-panel');
+    const td = document.getElementById('timer-display');
+    if(!tp || !td) return;
+    
+    tp.style.opacity = '1';
+    tp.style.pointerEvents = 'auto';
+    tp.style.transform = 'translateY(0)';
+    
+    clearInterval(timerInterval);
+    let left = seconds;
+    
+    const updateD = () => {
+        let m = Math.floor(left / 60).toString().padStart(2, '0');
+        let s = (left % 60).toString().padStart(2, '0');
+        td.textContent = `${m}:${s}`;
+    };
+    
+    updateD();
+    timerInterval = setInterval(() => {
+        left--;
+        updateD();
+        if(left <= 0) {
+            clearInterval(timerInterval);
+            audioBell.currentTime = 0;
+            audioBell.play().catch(()=>{});
+            setTimeout(stopTimer, 2000);
+        }
+    }, 1000);
+}
+
+function stopTimer() {
+    clearInterval(timerInterval);
+    const tp = document.getElementById('timer-panel');
+    if(tp) {
+        tp.style.opacity = '0';
+        tp.style.pointerEvents = 'none';
+        tp.style.transform = 'translateY(200%)';
     }
+}
+
+// --- CALENDAR ---
+function openCalendar() {
+    openModal('modal-calendar');
     
     const d = new Date();
     const month = d.getMonth();
     const year = d.getFullYear();
     
-    const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
-    document.getElementById('cal-month-title').textContent = `${monthNames[month]} ${year}`;
+    const mNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+    document.getElementById('cal-month-title').textContent = `${mNames[month]} ${year}`;
     
-    const firstDay = new Date(year, month, 1).getDay();
+    let firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
-    // JS getDay is 0 (Sun) to 6 (Sat). Let's convert to Mon=0
     let emptyDays = firstDay === 0 ? 6 : firstDay - 1;
     
     const calGrid = document.getElementById('cal-grid');
     calGrid.innerHTML = '';
     
-    // Add empty slots
     for(let i=0; i<emptyDays; i++) {
-        const div = document.createElement('div');
-        div.className = 'w-8 h-8';
-        calGrid.appendChild(div);
+        calGrid.innerHTML += `<div class="w-8 h-8"></div>`;
     }
     
     for(let i=1; i<=daysInMonth; i++) {
         const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
-        const hasWorkedOut = state.streak.history.includes(ds);
+        const done = state.streak.history.includes(ds);
         
-        const div = document.createElement('div');
-        div.className = 'flex flex-col items-center gap-1';
-        
-        const ring = document.createElement('div');
-        ring.className = `ring-container ${hasWorkedOut ? 'ring-active' : ''}`;
-        ring.innerHTML = `<span class="text-[10px] font-bold ${hasWorkedOut ? 'text-neon' : 'text-slate-500'}">${i}</span>`;
-        
-        div.appendChild(ring);
-        calGrid.appendChild(div);
+        calGrid.innerHTML += `
+            <div class="flex flex-col items-center">
+                <div class="ring-container ${done ? 'ring-active' : ''}">
+                    <span class="text-[12px] font-bold" style="color: ${done ? 'var(--color-energy-green)' : 'var(--text-secondary)'}">${i}</span>
+                </div>
+            </div>`;
     }
 }
 
-function closeCalendar() {
-    const cw = document.getElementById('modal-calendar');
-    if(cw) {
-        cw.style.display = 'none';
-        cw.classList.add('hidden');
-    }
-}
-
-// --- SETTINGS LOGIC ---
+// --- SETTINGS EXTRAS ---
 function openProfileEdit() {
-    const newName = prompt("Adınızı güncelleyin:", state.user.name);
-    if(newName) {
-        state.user.name = newName;
+    const nn = prompt("Adınız:", state.user.name);
+    if(nn) {
+        state.user.name = nn;
         saveState();
         updateUI();
+        navigateto('settings'); // Refresh title
     }
 }
 
 function confirmReset() {
-    if(confirm("TÜM VERİLERİ SİLİYORSUNUZ! (Streakler, Su, Kalori, Antrenmanlar). Emin misiniz?")) {
-        localStorage.removeItem('ultimateFitnessState');
-        localStorage.removeItem('ultimateFitnessPrograms');
+    if(confirm("Tüm gelişimin silinecek! Devam?")) {
+        localStorage.clear();
         window.location.reload();
     }
 }
 
-// Initialize the app when DOM is ready
 if (document.readyState === 'loading') {    
     document.addEventListener('DOMContentLoaded', init);
 } else {
