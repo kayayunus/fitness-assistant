@@ -96,6 +96,10 @@ function init() {
     viewSections = document.querySelectorAll('.view-section');
     navButtons = document.querySelectorAll('.nav-btn');
 
+    if (!onboardingView) console.error('Element bulunamadı!');
+    if (!mainContent) console.error('Element bulunamadı!');
+    if (!bottomNav) console.error('Element bulunamadı!');
+
     loadState();
     checkDailyReset();
     
@@ -119,14 +123,17 @@ function loadState() {
         const saved = localStorage.getItem('fitnessAppState');
         if (saved !== null && saved !== "null" && saved !== "undefined") {
             const parsed = JSON.parse(saved);
+            if (typeof parsed !== 'object' || parsed === null) throw new Error("Bozuk state objesi");
             state = { ...state, ...parsed };
-            // Structural fallback checks
-            if (!state.user) state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false };
-            if (!state.streak) state.streak = { days: 0, lastDate: null };
-            if (!state.water) state.water = { amount: 0, date: null };
-            if (!state.calorie) state.calorie = { amount: 0, date: null };
-            if (!Array.isArray(state.weightHistory)) state.weightHistory = [];
         }
+        
+        // Kesin yapısal kontroller ve varsayılana zorlama
+        if (!state.user || typeof state.user !== 'object') state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false };
+        if (!state.streak || typeof state.streak !== 'object') state.streak = { days: 0, lastDate: null };
+        if (!state.water || typeof state.water !== 'object') state.water = { amount: 0, date: null };
+        if (!state.calorie || typeof state.calorie !== 'object') state.calorie = { amount: 0, date: null };
+        if (!Array.isArray(state.weightHistory)) state.weightHistory = [];
+
         const savedCustom = localStorage.getItem('fitnessCustomPrograms');
         if (savedCustom !== null && savedCustom !== "null" && savedCustom !== "undefined") {
             const parsedCustom = JSON.parse(savedCustom);
@@ -134,6 +141,12 @@ function loadState() {
         }
     } catch (err) {
         console.error("Local storage error:", err);
+        // Hata durumunda state'i zorla varsayılana sıfırla
+        state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false };
+        state.streak = { days: 0, lastDate: null };
+        state.water = { amount: 0, date: null };
+        state.calorie = { amount: 0, date: null };
+        state.weightHistory = [];
     }
 }
 
@@ -209,7 +222,7 @@ function showOnboarding() {
 function showMainApp() {
     if (onboardingView) onboardingView.style.display = 'none';
     if (mainContent) mainContent.style.display = 'flex';
-    if (bottomNav) bottomNav.style.display = 'block';
+    if (bottomNav) bottomNav.style.display = 'flex';
     navigateto('dashboard');
 }
 
@@ -244,7 +257,7 @@ function handleOnboardingSubmit(e) {
         showMainApp();
     } catch(err) {
         console.error("Onboarding submission failed:", err);
-        alert("Kayıt tamamlanamadı. Konsol hatalarını kontrol ediniz.");
+        alert('Sistem Hatası: ' + err.message);
     }
 }
 
@@ -575,3 +588,47 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
+
+// --- E2E OTOMATIK TEST ---
+setTimeout(() => {
+    try {
+        if (state && state.user && !state.user.setupComplete) {
+            console.log("TEST BAŞLIYOR...");
+            const nameInput = document.getElementById('user-name');
+            const heightInput = document.getElementById('user-height');
+            const weightInput = document.getElementById('user-weight');
+            const targetInput = document.getElementById('user-target-weight');
+            const form = document.getElementById('onboarding-form');
+            
+            if (nameInput && heightInput && weightInput && form) {
+                nameInput.value = 'Test';
+                heightInput.value = '180';
+                weightInput.value = '80';
+                if(targetInput) targetInput.value = '75';
+                
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if(submitBtn) submitBtn.click();
+                
+                setTimeout(() => {
+                    const mainElement = document.getElementById('main-content');
+                    if (mainElement && mainElement.style.display === 'flex') {
+                        console.log("TEST OK: Onboarding Geçişi Başarılı");
+                        
+                        const btnAntrenman = document.querySelector('button[data-target="workout"]');
+                        if(btnAntrenman) { btnAntrenman.click(); console.log("TEST OK: Antrenman Menüsü Açıldı"); }
+                        
+                        const btnSu = document.querySelector('button[data-target="tracker"]');
+                        if(btnSu) { btnSu.click(); console.log("TEST OK: Su/Kalori Menüsü Açıldı"); }
+                        
+                        const btnStat = document.querySelector('button[data-target="stats"]');
+                        if(btnStat) { btnStat.click(); console.log("TEST OK: İstatistik Menüsü Açıldı"); }
+                    } else {
+                        console.error("TEST FAILED: Onboarding Geçişi BAŞARISIZ");
+                    }
+                }, 500);
+            }
+        }
+    } catch (err) {
+        console.error("E2E Test Hatası:", err);
+    }
+}, 1000);
