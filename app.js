@@ -1,6 +1,5 @@
 // app.js
 
-// Function to safely init icons
 function initIcons() {
     if (typeof lucide !== 'undefined') {
         try { lucide.createIcons(); } catch(e) { console.warn("Lucide err", e); }
@@ -8,67 +7,47 @@ function initIcons() {
 }
 
 // Elements
-let onboardingView;
-let mainApp;
-let appHeader;
-let appContent;
-let bottomNav;
-let viewSections;
-let navButtons;
+let onboardingView, mainApp, appHeader, appContent, bottomNav, viewSections, navButtons;
 
 // --- STATE MANAGEMENT ---
 let state = {
     user: {
-        name: '',
-        height: null,
-        weight: null,
-        targetWeight: null,
-        setupComplete: false
+        name: '', height: null, weight: null, targetWeight: null, setupComplete: false,
+        dailyCalorieGoal: 2000
     },
-    streak: {
-        days: 0,
-        lastDate: null
-    },
-    water: {
-        amount: 0,
-        date: null
-    },
-    calorie: {
-        amount: 0,
-        date: null
-    },
+    streak: { days: 0, lastDate: null, history: [] }, // history: ['YYYY-MM-DD']
+    water: { amount: 0, date: null, bottleSize: 750 },
+    calorie: { amount: 0, date: null },
     weightHistory: []
 };
 
 // HARCODED PROGRAMS AS REQUESTED
 const defaultPrograms = [
     {
-        id: 'day1',
-        title: 'Gün 1: Full Body Hafif Ağırlık',
+        id: 'day1', title: 'Gün 1 (Full Body)',
         desc: 'Chest Press, Lat Pulldown, Lateral Raise, Leg Press, Plank',
         exercises: [
             { name: 'Chest Press', sets: 3, reps: '12', time: 60 },
             { name: 'Lat Pulldown', sets: 3, reps: '12', time: 60 },
             { name: 'Lateral Raise', sets: 3, reps: '12', time: 60 },
             { name: 'Leg Press', sets: 3, reps: '12', time: 60 },
-            { name: 'Plank', sets: 3, reps: '30sn', time: 30 }
+            { name: 'Plank', sets: 3, reps: '30sn', time: 45 }
         ]
     },
     {
-        id: 'day2',
-        title: 'Gün 2: Kardiyo & Mobilite',
-        desc: 'Kardiyo (110-120 bpm) ve Mobilite/Yoga',
+        id: 'day2', title: 'Gün 2 (Kardiyo/Mobilite)',
+        desc: '20-30 dk hafif yürüyüş (110-120 bpm), Yoga ve nefes',
         exercises: [
-            { name: 'Yürüyüş/Kardiyo (110-120 bpm)', sets: 1, reps: '30dk', time: null },
-            { name: 'Mobilite ve Esneme', sets: 1, reps: '15dk', time: null },
-            { name: 'Yoga', sets: 1, reps: '15dk', time: null }
+            { name: 'Hafif Yürüyüş (110-120bpm)', sets: 1, reps: '25dk', time: null },
+            { name: 'Nefes Egzersizleri', sets: 1, reps: '5dk', time: null },
+            { name: 'Yoga / Mobilite', sets: 1, reps: '15dk', time: null }
         ]
     },
     {
-        id: 'day3',
-        title: 'Gün 3: Full Body ve Kardiyo',
-        desc: 'Incline Press, Seated Row, Shoulder Press, Squat',
+        id: 'day3', title: 'Gün 3 (Full Body/Kardiyo)',
+        desc: 'Bisiklet, Incline Press, Seated Row, Squat',
         exercises: [
+            { name: 'Bisiklet Isınma', sets: 1, reps: '10dk', time: null },
             { name: 'Incline Press', sets: 3, reps: '12', time: 60 },
             { name: 'Seated Row', sets: 3, reps: '12', time: 60 },
             { name: 'Shoulder Press', sets: 3, reps: '12', time: 60 },
@@ -76,11 +55,10 @@ const defaultPrograms = [
         ]
     },
     {
-        id: 'day4',
-        title: 'Gün 4: Kardiyo ve Core',
-        desc: 'Dead Bug, Bird Dog, Side Plank',
+        id: 'day4', title: 'Gün 4 (Kardiyo/Core)',
+        desc: '25 dk yürüyüş, Dead Bug, Bird Dog, Side Plank',
         exercises: [
-            { name: 'Kardiyo Isınma', sets: 1, reps: '10dk', time: null },
+            { name: 'Kardiyo Yürüyüş', sets: 1, reps: '25dk', time: null },
             { name: 'Dead Bug', sets: 3, reps: '12', time: 45 },
             { name: 'Bird Dog', sets: 3, reps: '12/Yön', time: 45 },
             { name: 'Side Plank', sets: 3, reps: '20s/Yön', time: 30 }
@@ -104,11 +82,8 @@ function init() {
     loadState();
     checkDailyReset();
     
-    // Attach event listeners safely
-    const onboardingForm = document.getElementById('onboarding-form');
-    if (onboardingForm) {
-        onboardingForm.addEventListener('submit', handleOnboardingSubmit);
-    }
+    const obsForm = document.getElementById('onboarding-form');
+    if (obsForm) obsForm.addEventListener('submit', handleOnboardingSubmit);
 
     if (state.user.setupComplete) {
         showMainApp();
@@ -121,7 +96,7 @@ function init() {
 
 function loadState() {
     try {
-        const saved = localStorage.getItem('fitnessAppStateMaster');
+        const saved = localStorage.getItem('ultimateFitnessState');
         if (saved !== null && saved !== "null" && saved !== "undefined") {
             const parsed = JSON.parse(saved);
             if (typeof parsed === 'object' && parsed !== null) {
@@ -130,16 +105,21 @@ function loadState() {
         }
         
         // Strict fallback Checks
-        if (!state.user || typeof state.user !== 'object') state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false };
-        if (!state.streak || typeof state.streak !== 'object') state.streak = { days: 0, lastDate: null };
-        if (!state.water || typeof state.water !== 'object') state.water = { amount: 0, date: null };
+        if (!state.user || typeof state.user !== 'object') state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false, dailyCalorieGoal: 2000 };
+        if (!state.user.dailyCalorieGoal) state.user.dailyCalorieGoal = 2000;
+        if (!state.streak || typeof state.streak !== 'object') state.streak = { days: 0, lastDate: null, history: [] };
+        if (!Array.isArray(state.streak.history)) state.streak.history = [];
+        if (!state.water || typeof state.water !== 'object') state.water = { amount: 0, date: null, bottleSize: 750 };
+        if (!state.water.bottleSize) state.water.bottleSize = 750;
         if (!state.calorie || typeof state.calorie !== 'object') state.calorie = { amount: 0, date: null };
         if (!Array.isArray(state.weightHistory)) state.weightHistory = [];
 
-        const savedCustom = localStorage.getItem('fitnessCustomProgramsMaster');
+        const savedCustom = localStorage.getItem('ultimateFitnessPrograms');
         if (savedCustom !== null && savedCustom !== "null" && savedCustom !== "undefined") {
-            const parsedCustom = JSON.parse(savedCustom);
-            customPrograms = Array.isArray(parsedCustom) ? parsedCustom : [];
+            customPrograms = JSON.parse(savedCustom);
+        } else {
+            customPrograms = JSON.parse(JSON.stringify(defaultPrograms)); // Deep copy defaults
+            saveCustomPrograms();
         }
     } catch (err) {
         console.error("Local storage error:", err);
@@ -147,16 +127,16 @@ function loadState() {
 }
 
 function saveState() {
-    localStorage.setItem('fitnessAppStateMaster', JSON.stringify(state));
+    localStorage.setItem('ultimateFitnessState', JSON.stringify(state));
 }
 
 function saveCustomPrograms() {
-    localStorage.setItem('fitnessCustomProgramsMaster', JSON.stringify(customPrograms));
+    localStorage.setItem('ultimateFitnessPrograms', JSON.stringify(customPrograms));
 }
 
 function getTodayString() {
     const d = new Date();
-    return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 
 function checkDailyReset() {
@@ -188,7 +168,6 @@ function checkDailyReset() {
 function navigateto(viewId) {
     if(!viewSections) return;
     try {
-        // Toggling display values directly prevents layout shifts caused by overlapping tailwind classes
         viewSections.forEach(sec => {
             if(sec.id === 'view-' + viewId) {
                 sec.style.display = 'flex';
@@ -200,39 +179,39 @@ function navigateto(viewId) {
         if(navButtons) {
             navButtons.forEach(btn => {
                 if(btn.dataset.target === viewId) {
-                    btn.classList.add('text-blue-500');
+                    btn.classList.add('text-electric');
                     btn.classList.remove('text-slate-500');
                 } else if (btn.dataset.target) {
-                    btn.classList.remove('text-blue-500');
+                    btn.classList.remove('text-electric');
                     btn.classList.add('text-slate-500');
                 }
             });
         }
         
-        // Dynamically update the header title clamping
         const headerTitle = document.getElementById('header-title');
         const headerSubtitle = document.getElementById('header-subtitle');
         if(headerTitle && headerSubtitle) {
             if(viewId === 'dashboard') {
-                headerTitle.textContent = `Hoş geldin, ${state.user.name.split(' ')[0]}`;
-                headerSubtitle.textContent = "Bugün nasılsın?";
+                headerTitle.textContent = `Tebrikler, ${state.user.name.split(' ')[0]}`;
+                headerSubtitle.textContent = "Pes etme!";
             } else if(viewId === 'workout') {
-                headerTitle.textContent = "Antrenman";
-                headerSubtitle.textContent = "Programını seç.";
+                headerTitle.textContent = "Pro Antrenman";
+                headerSubtitle.textContent = "Programını düzenle veya başla.";
             } else if(viewId === 'tracker') {
-                headerTitle.textContent = "Su & Kalori";
-                headerSubtitle.textContent = "Tüketimini izle.";
+                headerTitle.textContent = "Makro & Sıvı";
+                headerSubtitle.textContent = "Bedeni besle.";
             } else if(viewId === 'stats') {
-                headerTitle.textContent = "Durum";
-                headerSubtitle.textContent = "Gelişimini takip et.";
+                headerTitle.textContent = "Gelişim";
+                headerSubtitle.textContent = "Zaman serisi grafiği.";
             } else if(viewId === 'settings') {
                 headerTitle.textContent = "Ayarlar";
-                headerSubtitle.textContent = "Tercihlerim.";
+                headerSubtitle.textContent = "Uygulama kontrolü.";
             }
         }
         
-        // Reset scroll position gracefully
         if(appContent) appContent.scrollTop = 0;
+        if(viewId === 'stats') renderChartJs();
+
     } catch (err) {
         console.error("Navigation error:", err);
     }
@@ -245,7 +224,7 @@ function showOnboarding() {
 
 function showMainApp() {
     if (onboardingView) onboardingView.style.display = 'none';
-    if (mainApp) mainApp.style.display = 'grid'; // Crucial for layout
+    if (mainApp) mainApp.style.display = 'grid';
     navigateto('dashboard');
 }
 
@@ -257,10 +236,7 @@ function handleOnboardingSubmit(e) {
         const heightInput = document.getElementById('user-height').value;
         const weightInput = document.getElementById('user-weight').value;
         
-        if (!nameInput || !heightInput || !weightInput) {
-            alert("Lütfen alanları tam doldurun.");
-            return;
-        }
+        if (!nameInput || !heightInput || !weightInput) return;
 
         const height = parseFloat(heightInput);
         const weight = parseFloat(weightInput);
@@ -271,8 +247,15 @@ function handleOnboardingSubmit(e) {
         state.user.height = height;
         state.user.weight = weight;
         state.user.targetWeight = targetWeight;
-        state.user.setupComplete = true;
         
+        // Akıllı kalori hesaplama (Harris-Benedict Basit)
+        let bmr = 10 * weight + 6.25 * height - 5 * 25 + 5; // approx male 25yo
+        let goal = Math.round(bmr * 1.55); // moderate activity
+        if (targetWeight < weight) goal -= 400;
+        else if (targetWeight > weight) goal += 400;
+        state.user.dailyCalorieGoal = goal;
+
+        state.user.setupComplete = true;
         state.weightHistory.push({ date: getTodayString(), weight: weight });
         
         saveState();
@@ -280,7 +263,6 @@ function handleOnboardingSubmit(e) {
         showMainApp();
     } catch(err) {
         console.error("Onboarding error:", err);
-        alert('Hata oluştu, tekrar deneyin.');
     }
 }
 
@@ -289,15 +271,17 @@ function updateUI() {
     try {
         if(!state.user.setupComplete) return;
 
+        // Dashboard
         const streakEl = document.getElementById('streak-days');
         if(streakEl) streakEl.textContent = state.streak.days;
 
+        // Tracker: Water
         const waterEl = document.getElementById('water-amount');
         if(waterEl) waterEl.textContent = state.water.amount;
-
-        const calEl = document.getElementById('calorie-amount');
-        if(calEl) calEl.textContent = state.calorie.amount;
         
+        const bLabel = document.getElementById('bottle-size-lbl');
+        if (bLabel) bLabel.textContent = state.water.bottleSize;
+
         const waterGoal = 3000; 
         const waterBg = document.getElementById('water-progress-bg');
         if(waterBg) {
@@ -305,41 +289,86 @@ function updateUI() {
             waterBg.style.height = `${pct}%`;
         }
 
+        // Tracker: Calorie
+        const calEl = document.getElementById('calorie-amount');
+        if(calEl) calEl.textContent = state.calorie.amount;
+        
+        const calGoalEl = document.getElementById('calorie-goal');
+        if(calGoalEl) calGoalEl.textContent = state.user.dailyCalorieGoal;
+
+        const calBar = document.getElementById('cal-progress-bar');
+        if(calBar) {
+            let cpct = Math.min((state.calorie.amount / state.user.dailyCalorieGoal) * 100, 100);
+            calBar.style.width = `${cpct}%`;
+            if (cpct >= 100) calBar.classList.add('bg-neon'); // Hedef aşıldığında neon
+        }
+
         renderWorkouts();
-        renderWeightChart();
     } catch (err) {
         console.error("UI update failed:", err);
     }
 }
 
-// --- WORKOUT LOGIC ---
+// --- WORKOUT CRUD & MANAGEMENT ---
 function renderWorkouts() {
     const list = document.getElementById('program-list');
     if(!list) return;
     list.innerHTML = '';
     
-    const allProgs = [...defaultPrograms, ...customPrograms];
-    
-    allProgs.forEach(prog => {
+    customPrograms.forEach(prog => {
         const div = document.createElement('div');
-        div.className = 'glass glass-apple rounded-2xl p-4 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors border-l-4 border-l-transparent hover:border-l-blue-500 gap-3';
+        div.className = 'glass rounded-2xl p-4 flex flex-col gap-3 transition-colors border-l-4 border-l-transparent hover:border-l-electric gap-3';
         div.innerHTML = `
-            <div class="flex flex-col gap-1 min-w-0">
-                <h3 class="font-bold text-white text-base truncate">${prog.title}</h3>
-                <p class="text-[11px] leading-tight text-slate-400 line-clamp-2">${prog.desc || prog.exercises.length + ' Egzersiz'}</p>
+            <div class="flex justify-between items-start">
+                <div class="flex flex-col gap-1 min-w-0 pr-3">
+                    <h3 class="font-bold text-white text-base truncate">${prog.title}</h3>
+                    <p class="text-[11px] leading-tight text-slate-400 line-clamp-2">${prog.desc || prog.exercises.length + ' Egzersiz'}</p>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="editProgram('${prog.id}')" class="p-2 bg-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors nav-btn">
+                        <i data-lucide="edit-2" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="confirmHealthAndStart('${prog.id}')" class="bg-neon/20 hover:bg-neon/30 text-neon p-2 rounded-xl transition-colors nav-btn shadow-[0_0_10px_rgba(57,255,20,0.1)]">
+                        <i data-lucide="play" class="w-4 h-4"></i>
+                    </button>
+                </div>
             </div>
-            <button onclick="startWorkout('${prog.id}')" class="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 p-3 rounded-xl transition-colors shrink-0 flex items-center justify-center nav-btn">
-                <i data-lucide="play" class="w-5 h-5"></i>
-            </button>
+            
         `;
         list.appendChild(div);
     });
     initIcons();
 }
 
+let pendingWorkoutId = null;
+
+function confirmHealthAndStart(progId) {
+    pendingWorkoutId = progId;
+    const cw = document.getElementById('modal-health');
+    if(cw) {
+        cw.style.display = 'flex';
+        cw.classList.remove('hidden');
+    }
+}
+
+function acknowledgeHealthAndStart() {
+    cancelHealthWarning();
+    if(pendingWorkoutId) {
+        startWorkout(pendingWorkoutId);
+    }
+}
+
+function cancelHealthWarning() {
+    pendingWorkoutId = null;
+    const cw = document.getElementById('modal-health');
+    if(cw) {
+        cw.style.display = 'none';
+        cw.classList.add('hidden');
+    }
+}
+
 function startWorkout(progId) {
-    const allProgs = [...defaultPrograms, ...customPrograms];
-    const prog = allProgs.find(p => p.id === progId);
+    const prog = customPrograms.find(p => p.id === progId);
     if(!prog) return;
 
     const titleEl = document.getElementById('active-workout-title');
@@ -351,21 +380,21 @@ function startWorkout(progId) {
     
     prog.exercises.forEach((ex, idx) => {
         const div = document.createElement('div');
-        div.className = 'bg-slate-800/50 rounded-xl p-4 ml-6 relative flex flex-col gap-3';
+        div.className = 'glass rounded-xl p-4 ml-6 relative flex flex-col gap-3';
         
         const dot = document.createElement('div');
-        dot.className = 'absolute -left-[35px] top-6 w-4 h-4 rounded-full bg-slate-700 border-4 border-slate-900 z-10 transition-colors';
+        dot.className = 'absolute -left-[35px] top-6 w-4 h-4 rounded-full bg-slate-800 border-[3px] border-slate-950 z-10 transition-colors shadow-[0_0_0_2px_rgba(255,255,255,0.05)]';
         div.appendChild(dot);
 
-        let timeBtn = ex.time ? `<button onclick="triggerTimer(${ex.time})" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 flex items-center justify-center gap-2 transition-colors nav-btn"><i data-lucide="timer" class="w-4 h-4"></i> ${ex.time}s Dinlenme</button>` : '';
+        let timeBtn = ex.time ? `<button onclick="triggerTimer(${ex.time})" class="bg-electric/10 hover:bg-electric/20 text-electric border border-electric/20 px-3 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors nav-btn"><i data-lucide="timer" class="w-4 h-4"></i> ${ex.time}s Dinlenme</button>` : '';
 
         div.innerHTML += `
             <div class="flex justify-between items-start gap-4 p-1">
                 <div class="flex flex-col gap-1 min-w-0">
                     <h4 class="font-bold text-slate-100 truncate">${ex.name}</h4>
-                    <p class="text-sm text-slate-400">${ex.sets} Set x ${ex.reps}</p>
+                    <p class="text-sm text-electric/80 font-medium">${ex.sets} Set x ${ex.reps}</p>
                 </div>
-                <button onclick="toggleExerciseComplete(this, ${idx})" class="w-10 h-10 shrink-0 rounded-full border-2 border-slate-600 flex items-center justify-center text-slate-600 hover:bg-green-500 hover:text-white hover:border-green-500 transition-colors nav-btn">
+                <button onclick="toggleExerciseComplete(this, ${idx})" class="w-10 h-10 shrink-0 rounded-full glass flex items-center justify-center text-slate-500 hover:text-white hover:border-neon hover:bg-neon/30 transition-all nav-btn">
                     <i data-lucide="check" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -379,17 +408,23 @@ function startWorkout(progId) {
 }
 
 function toggleExerciseComplete(btn, idx) {
-    btn.classList.toggle('border-green-500');
-    btn.classList.toggle('bg-green-500');
-    btn.classList.toggle('text-white');
-    btn.classList.toggle('text-slate-600');
-    btn.classList.toggle('border-slate-600');
+    btn.classList.toggle('border-neon');
+    btn.classList.toggle('bg-neon');
+    btn.classList.toggle('text-slate-950');
+    btn.classList.toggle('text-slate-500');
+    btn.classList.toggle('glass');
+    btn.classList.toggle('shadow-neon');
     
     const dot = btn.closest('.relative').querySelector('.absolute');
-    if(btn.classList.contains('bg-green-500')) {
-        dot.classList.replace('bg-slate-700', 'bg-green-500');
+    if(btn.classList.contains('bg-neon')) {
+        dot.classList.add('bg-neon', 'border-neon', 'shadow-neon');
+        dot.classList.remove('bg-slate-800', 'border-slate-950');
         
         const today = getTodayString();
+        // Record workout date in history if not present
+        if (!state.streak.history.includes(today)) {
+            state.streak.history.push(today);
+        }
         if (state.streak.lastDate !== today) {
             state.streak.days++;
             state.streak.lastDate = today;
@@ -397,7 +432,8 @@ function toggleExerciseComplete(btn, idx) {
             updateUI();
         }
     } else {
-        dot.classList.replace('bg-green-500', 'bg-slate-700');
+        dot.classList.remove('bg-neon', 'border-neon', 'shadow-neon');
+        dot.classList.add('bg-slate-800', 'border-slate-950');
     }
 }
 
@@ -405,6 +441,112 @@ function closeActiveWorkout() {
     navigateto('workout');
     stopTimer();
     hideTimerPanel();
+}
+
+// --- PROGRAM EDITOR (CRUD) ---
+function openProgramEditor(id = null) {
+    const cw = document.getElementById('modal-editor');
+    if(cw) {
+        cw.style.display = 'flex';
+        cw.classList.remove('hidden');
+    }
+
+    const titleInput = document.getElementById('edit-prog-title');
+    const descInput = document.getElementById('edit-prog-desc');
+    const idInput = document.getElementById('edit-prog-id');
+    const exList = document.getElementById('edit-ex-list');
+    exList.innerHTML = '';
+    
+    if (id) {
+        const prog = customPrograms.find(p => p.id === id);
+        titleInput.value = prog.title;
+        descInput.value = prog.desc;
+        idInput.value = prog.id;
+        
+        prog.exercises.forEach(ex => {
+            addExRow(ex.name, ex.sets, ex.reps, ex.time);
+        });
+    } else {
+        titleInput.value = '';
+        descInput.value = '';
+        idInput.value = '';
+        addExRow();
+    }
+}
+
+function editProgram(id) {
+    openProgramEditor(id);
+}
+
+function closeEditor() {
+    const cw = document.getElementById('modal-editor');
+    if(cw) {
+        cw.style.display = 'none';
+        cw.classList.add('hidden');
+    }
+}
+
+function addExRow(name='', sets=3, reps='12', time='') {
+    const list = document.getElementById('edit-ex-list');
+    const div = document.createElement('div');
+    div.className = 'glass p-3 rounded-xl flex flex-col gap-2 relative';
+    div.innerHTML = `
+        <button type="button" onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><i data-lucide="x" class="w-3 h-3"></i></button>
+        <input type="text" class="ex-name w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-3 text-sm text-white" placeholder="Hareket Adı (örn: Push Up)" value="${name}">
+        <div class="flex gap-2">
+            <input type="number" class="ex-sets w-1/4 bg-slate-900 border border-slate-800 rounded-lg px-2 py-3 text-center text-sm text-white" placeholder="Set" value="${sets}">
+            <input type="text" class="ex-reps w-1/4 bg-slate-900 border border-slate-800 rounded-lg px-2 py-3 text-center text-sm text-white" placeholder="Tekrar" value="${reps}">
+            <input type="number" class="ex-time flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2 py-3 text-center text-sm text-white" placeholder="Sn (Dinlenme)" value="${time}">
+        </div>
+    `;
+    list.appendChild(div);
+    initIcons();
+}
+
+function saveProgram() {
+    const title = document.getElementById('edit-prog-title').value.trim();
+    const desc = document.getElementById('edit-prog-desc').value.trim();
+    const id = document.getElementById('edit-prog-id').value;
+    
+    if(!title) {
+        alert("Lütfen program adı girin.");
+        return;
+    }
+
+    const rows = document.querySelectorAll('#edit-ex-list > div');
+    const exercises = [];
+    rows.forEach(r => {
+        const name = r.querySelector('.ex-name').value;
+        const sets = parseInt(r.querySelector('.ex-sets').value) || 1;
+        const reps = r.querySelector('.ex-reps').value || '1';
+        const timeVal = parseInt(r.querySelector('.ex-time').value);
+        const time = isNaN(timeVal) ? null : timeVal;
+        
+        if (name) exercises.push({name, sets, reps, time});
+    });
+
+    if (exercises.length === 0) {
+        alert("En az bir egzersiz girmelisiniz.");
+        return;
+    }
+
+    if(id) {
+        // Update
+        const idx = customPrograms.findIndex(p => p.id === id);
+        if(idx !== -1) {
+            customPrograms[idx] = { id, title, desc, exercises };
+        }
+    } else {
+        // Create
+        customPrograms.push({
+            id: 'p_' + Date.now(),
+            title, desc, exercises
+        });
+    }
+
+    saveCustomPrograms();
+    renderWorkouts();
+    closeEditor();
 }
 
 // --- TIMER LOGIC ---
@@ -431,9 +573,7 @@ function startTimer(seconds) {
             clearInterval(timerInterval);
             audioBell.currentTime = 0;
             audioBell.play().catch(e=>console.log("Audio play prevented", e));
-            setTimeout(() => {
-                hideTimerPanel();
-            }, 2500);
+            setTimeout(() => hideTimerPanel(), 2500);
         }
     }, 1000);
 }
@@ -471,10 +611,16 @@ function addWater(ml) {
     updateUI();
 }
 
+function addWaterFromBottle() {
+    addWater(state.water.bottleSize || 750);
+}
+
 function openCustomWaterMenu() {
-    const amt = prompt("Özel Matara Miktarı (ml) nedir?", "750");
+    const amt = prompt("Özel Matara Miktarı (ml) nedir?", state.water.bottleSize);
     if(amt && !isNaN(amt)) {
-        addWater(parseInt(amt));
+        state.water.bottleSize = parseInt(amt);
+        saveState();
+        updateUI();
     }
 }
 
@@ -490,27 +636,58 @@ function addCalorie() {
     }
 }
 
-// --- STATS LOGIC ---
-function renderWeightChart() {
-    const chart = document.getElementById('weight-chart');
-    if(!chart) return;
-    chart.innerHTML = '';
+// --- STATS LOGIC (Chart.js implementation) ---
+let myChart = null;
+
+function renderChartJs() {
+    const ctx = document.getElementById('weightChart');
+    if(!ctx) return;
     
     if(state.weightHistory.length === 0) return;
-    
-    const recent = state.weightHistory.slice(-5);
-    const maxWeight = Math.max(...recent.map(w => w.weight)) + 10;
-    
-    recent.forEach(item => {
-        const heightPct = Math.max(10, (item.weight / maxWeight) * 100);
-        const col = document.createElement('div');
-        col.className = 'flex flex-col items-center flex-1 gap-1 min-w-0';
-        col.innerHTML = `
-            <span class="text-[10px] text-blue-400 font-medium truncate">${item.weight}</span>
-            <div class="w-full bg-blue-500/50 rounded-t-sm transition-all duration-700" style="height: ${heightPct}px"></div>
-            <span class="text-[9px] text-slate-500 mt-1 truncate max-w-full">${item.date.substring(5)}</span>
-        `;
-        chart.appendChild(col);
+
+    if (myChart) {
+        myChart.destroy();
+    }
+
+    const recent = state.weightHistory.slice(-10); // last 10 entries
+    const labels = recent.map(item => item.date.substring(5)); // MM-DD
+    const data = recent.map(item => item.weight);
+
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Kilo (kg)',
+                data: data,
+                borderColor: '#00e5ff',
+                backgroundColor: 'rgba(0, 229, 255, 0.1)',
+                borderWidth: 2,
+                pointBackgroundColor: '#00e5ff',
+                pointBorderColor: '#020617',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                    ticks: { color: '#94a3b8', font: { size: 10 } }
+                },
+                y: {
+                    grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+                    ticks: { color: '#94a3b8', font: { size: 10 } }
+                }
+            }
+        }
     });
 }
 
@@ -529,7 +706,62 @@ function updateWeightDialog() {
         }
         
         saveState();
-        updateUI();
+        if (myChart) renderChartJs();
+    }
+}
+
+// --- CALENDAR LOGIC ---
+function openCalendar() {
+    const cw = document.getElementById('modal-calendar');
+    if(cw) {
+        cw.style.display = 'flex';
+        cw.classList.remove('hidden');
+    }
+    
+    const d = new Date();
+    const month = d.getMonth();
+    const year = d.getFullYear();
+    
+    const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+    document.getElementById('cal-month-title').textContent = `${monthNames[month]} ${year}`;
+    
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    // JS getDay is 0 (Sun) to 6 (Sat). Let's convert to Mon=0
+    let emptyDays = firstDay === 0 ? 6 : firstDay - 1;
+    
+    const calGrid = document.getElementById('cal-grid');
+    calGrid.innerHTML = '';
+    
+    // Add empty slots
+    for(let i=0; i<emptyDays; i++) {
+        const div = document.createElement('div');
+        div.className = 'w-8 h-8';
+        calGrid.appendChild(div);
+    }
+    
+    for(let i=1; i<=daysInMonth; i++) {
+        const ds = `${year}-${String(month+1).padStart(2,'0')}-${String(i).padStart(2,'0')}`;
+        const hasWorkedOut = state.streak.history.includes(ds);
+        
+        const div = document.createElement('div');
+        div.className = 'flex flex-col items-center gap-1';
+        
+        const ring = document.createElement('div');
+        ring.className = `ring-container ${hasWorkedOut ? 'ring-active' : ''}`;
+        ring.innerHTML = `<span class="text-[10px] font-bold ${hasWorkedOut ? 'text-neon' : 'text-slate-500'}">${i}</span>`;
+        
+        div.appendChild(ring);
+        calGrid.appendChild(div);
+    }
+}
+
+function closeCalendar() {
+    const cw = document.getElementById('modal-calendar');
+    if(cw) {
+        cw.style.display = 'none';
+        cw.classList.add('hidden');
     }
 }
 
@@ -544,15 +776,15 @@ function openProfileEdit() {
 }
 
 function confirmReset() {
-    if(confirm("Emin misiniz? Tüm ilerlemeleriniz tamamen silinecektir.")) {
-        localStorage.removeItem('fitnessAppStateMaster');
-        localStorage.removeItem('fitnessCustomProgramsMaster');
+    if(confirm("TÜM VERİLERİ SİLİYORSUNUZ! (Streakler, Su, Kalori, Antrenmanlar). Emin misiniz?")) {
+        localStorage.removeItem('ultimateFitnessState');
+        localStorage.removeItem('ultimateFitnessPrograms');
         window.location.reload();
     }
 }
 
 // Initialize the app when DOM is ready
-if (document.readyState === 'loading') {
+if (document.readyState === 'loading') {    
     document.addEventListener('DOMContentLoaded', init);
 } else {
     init();
