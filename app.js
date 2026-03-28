@@ -180,9 +180,9 @@ function navigateto(viewId) {
     try {
         viewSections.forEach(sec => {
             if(sec.id === 'view-' + viewId) {
-                sec.classList.remove('hidden');
+                sec.style.display = 'flex';
             } else {
-                sec.classList.add('hidden');
+                sec.style.display = 'none';
             }
         });
 
@@ -201,23 +201,15 @@ function navigateto(viewId) {
 }
 
 function showOnboarding() {
-    onboardingView.classList.remove('hidden');
-    mainContent.classList.add('hidden');
-    bottomNav.classList.add('hidden');
+    if (onboardingView) onboardingView.style.display = 'flex';
+    if (mainContent) mainContent.style.display = 'none';
+    if (bottomNav) bottomNav.style.display = 'none';
 }
 
 function showMainApp() {
-    if (onboardingView) {
-        onboardingView.style.display = 'none';
-        onboardingView.classList.add('hidden');
-    }
-    if (mainContent) {
-        mainContent.style.display = 'flex';
-        mainContent.classList.remove('hidden');
-    }
-    if (bottomNav) {
-        bottomNav.classList.remove('hidden');
-    }
+    if (onboardingView) onboardingView.style.display = 'none';
+    if (mainContent) mainContent.style.display = 'flex';
+    if (bottomNav) bottomNav.style.display = 'block';
     navigateto('dashboard');
 }
 
@@ -578,15 +570,8 @@ function confirmReset() {
 }
 
 // Initialize the app when DOM is ready
-function startApp() {
-    if (window.appStarted) return;
-    window.appStarted = true;
-    try { init(); } catch (e) { console.error("App init failed", e); }
-}
-
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', startApp);
-    window.addEventListener('load', startApp);
+    document.addEventListener('DOMContentLoaded', init);
 } else {
-    startApp();
+    init();
 }
