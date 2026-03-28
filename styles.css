@@ -1,6 +1,5 @@
-/* Custom CSS with clamp and Apple-inspired touches */
+/* Apple Glassmorphism & Grid Rules */
 :root {
-  /* Using clamp for responsive typography to prevent overflow */
   --text-xs: clamp(0.70rem, 1.5vw, 0.75rem);
   --text-sm: clamp(0.80rem, 2vw, 0.875rem);
   --text-base: clamp(0.95rem, 2.5vw, 1rem);
@@ -14,9 +13,11 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  margin: 0;
+  padding: 0;
 }
 
-/* Typography Overrides based on viewports correctly without clipping */
+/* Typography Overrides */
 .text-xs { font-size: var(--text-xs) !important; line-height: 1.4; }
 .text-sm { font-size: var(--text-sm) !important; line-height: 1.4; }
 .text-base { font-size: var(--text-base) !important; line-height: 1.5; }
@@ -27,19 +28,41 @@ body {
 
 .font-sf { font-family: -apple-system, 'SF Pro Display', sans-serif; }
 
-/* Glassmorphism Classes */
-.glass {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+/* Grid specific overrides ensuring explicit constraints */
+#app-container {
+    display: grid;
+    grid-template-rows: auto 1fr auto; /* Header, Scrollable Content, Navbar */
+    width: 100%;
+    height: 100%;
+    overflow: hidden; /* Prevents outer scroll */
 }
+
+/* Scroll area */
+.scroll-area {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Glassmorphism based on prompt */
+.glass {
+  background: rgba(255, 255, 255, 0.05); /* bg-white/5 equivalent */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1); /* border-white/10 equivalent */
+}
+
 .glass-active {
   background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-top: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.2);
+}
+
+/* Navbar specific sizing */
+.nav-btn {
+    min-width: 44px;
+    min-height: 44px;
 }
 
 /* Hide scrollbar for clean UI but allow scroll */
@@ -58,10 +81,13 @@ body {
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Safe Area Support */
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 20px);
 }

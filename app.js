@@ -9,7 +9,9 @@ function initIcons() {
 
 // Elements
 let onboardingView;
-let mainContent;
+let mainApp;
+let appHeader;
+let appContent;
 let bottomNav;
 let viewSections;
 let navButtons;
@@ -35,36 +37,37 @@ let state = {
         amount: 0,
         date: null
     },
-    weightHistory: [] // {date: 'YYYY-MM-DD', weight: 70}
+    weightHistory: []
 };
 
+// HARCODED PROGRAMS AS REQUESTED
 const defaultPrograms = [
     {
         id: 'day1',
-        title: 'Gün 1 (Hipertansiyon/Böbrek Odaklı)',
-        desc: 'Chest Press, Lat Pulldown, 120-130 bpm limitleri',
+        title: 'Gün 1: Full Body Hafif Ağırlık',
+        desc: 'Chest Press, Lat Pulldown, Lateral Raise, Leg Press, Plank',
         exercises: [
             { name: 'Chest Press', sets: 3, reps: '12', time: 60 },
             { name: 'Lat Pulldown', sets: 3, reps: '12', time: 60 },
             { name: 'Lateral Raise', sets: 3, reps: '12', time: 60 },
             { name: 'Leg Press', sets: 3, reps: '12', time: 60 },
-            { name: 'Plank', sets: 3, reps: '20sn', time: 20 }
+            { name: 'Plank', sets: 3, reps: '30sn', time: 30 }
         ]
     },
     {
         id: 'day2',
-        title: 'Gün 2 (Kardiyo/Mobilite)',
-        desc: 'Aktif dinlenme ve esneklik.',
+        title: 'Gün 2: Kardiyo & Mobilite',
+        desc: 'Kardiyo (110-120 bpm) ve Mobilite/Yoga',
         exercises: [
-            { name: 'Yürüyüş (110-120 bpm)', sets: 1, reps: '20-30dk', time: null },
-            { name: 'Mobilite/Esneme', sets: 1, reps: '10dk', time: null },
+            { name: 'Yürüyüş/Kardiyo (110-120 bpm)', sets: 1, reps: '30dk', time: null },
+            { name: 'Mobilite ve Esneme', sets: 1, reps: '15dk', time: null },
             { name: 'Yoga', sets: 1, reps: '15dk', time: null }
         ]
     },
     {
         id: 'day3',
-        title: 'Gün 3 (Full Body/Kardiyo)',
-        desc: 'Güç ve Kondisyon karışımı.',
+        title: 'Gün 3: Full Body ve Kardiyo',
+        desc: 'Incline Press, Seated Row, Shoulder Press, Squat',
         exercises: [
             { name: 'Incline Press', sets: 3, reps: '12', time: 60 },
             { name: 'Seated Row', sets: 3, reps: '12', time: 60 },
@@ -74,31 +77,29 @@ const defaultPrograms = [
     },
     {
         id: 'day4',
-        title: 'Gün 4 (Kardiyo/Core)',
-        desc: 'Merkez bölge (Core) ve yağ yakımı.',
+        title: 'Gün 4: Kardiyo ve Core',
+        desc: 'Dead Bug, Bird Dog, Side Plank',
         exercises: [
+            { name: 'Kardiyo Isınma', sets: 1, reps: '10dk', time: null },
             { name: 'Dead Bug', sets: 3, reps: '12', time: 45 },
-            { name: 'Bird Dog', sets: 3, reps: '12', time: 45 },
-            { name: 'Side Plank', sets: 3, reps: '15s', time: 30 }
+            { name: 'Bird Dog', sets: 3, reps: '12/Yön', time: 45 },
+            { name: 'Side Plank', sets: 3, reps: '20s/Yön', time: 30 }
         ]
     }
 ];
 
 let customPrograms = [];
-// Temiz zil sesi - URI
 const audioBell = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
 // --- INITIALIZATION ---
 function init() {
-    onboardingView = document.getElementById('onboarding');
-    mainContent = document.getElementById('main-content');
+    onboardingView = document.getElementById('onboarding-view');
+    mainApp = document.getElementById('main-app');
+    appHeader = document.getElementById('app-header');
+    appContent = document.getElementById('app-content');
     bottomNav = document.getElementById('bottom-nav');
-    viewSections = document.querySelectorAll('.view-section');
+    viewSections = document.querySelectorAll('main > section');
     navButtons = document.querySelectorAll('.nav-btn');
-
-    if (!onboardingView) console.error('Element bulunamadı!');
-    if (!mainContent) console.error('Element bulunamadı!');
-    if (!bottomNav) console.error('Element bulunamadı!');
 
     loadState();
     checkDailyReset();
@@ -120,42 +121,37 @@ function init() {
 
 function loadState() {
     try {
-        const saved = localStorage.getItem('fitnessAppState');
+        const saved = localStorage.getItem('fitnessAppStateMaster');
         if (saved !== null && saved !== "null" && saved !== "undefined") {
             const parsed = JSON.parse(saved);
-            if (typeof parsed !== 'object' || parsed === null) throw new Error("Bozuk state objesi");
-            state = { ...state, ...parsed };
+            if (typeof parsed === 'object' && parsed !== null) {
+                state = { ...state, ...parsed };
+            }
         }
         
-        // Kesin yapısal kontroller ve varsayılana zorlama
+        // Strict fallback Checks
         if (!state.user || typeof state.user !== 'object') state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false };
         if (!state.streak || typeof state.streak !== 'object') state.streak = { days: 0, lastDate: null };
         if (!state.water || typeof state.water !== 'object') state.water = { amount: 0, date: null };
         if (!state.calorie || typeof state.calorie !== 'object') state.calorie = { amount: 0, date: null };
         if (!Array.isArray(state.weightHistory)) state.weightHistory = [];
 
-        const savedCustom = localStorage.getItem('fitnessCustomPrograms');
+        const savedCustom = localStorage.getItem('fitnessCustomProgramsMaster');
         if (savedCustom !== null && savedCustom !== "null" && savedCustom !== "undefined") {
             const parsedCustom = JSON.parse(savedCustom);
             customPrograms = Array.isArray(parsedCustom) ? parsedCustom : [];
         }
     } catch (err) {
         console.error("Local storage error:", err);
-        // Hata durumunda state'i zorla varsayılana sıfırla
-        state.user = { name: '', height: null, weight: null, targetWeight: null, setupComplete: false };
-        state.streak = { days: 0, lastDate: null };
-        state.water = { amount: 0, date: null };
-        state.calorie = { amount: 0, date: null };
-        state.weightHistory = [];
     }
 }
 
 function saveState() {
-    localStorage.setItem('fitnessAppState', JSON.stringify(state));
+    localStorage.setItem('fitnessAppStateMaster', JSON.stringify(state));
 }
 
 function saveCustomPrograms() {
-    localStorage.setItem('fitnessCustomPrograms', JSON.stringify(customPrograms));
+    localStorage.setItem('fitnessCustomProgramsMaster', JSON.stringify(customPrograms));
 }
 
 function getTodayString() {
@@ -173,7 +169,7 @@ function checkDailyReset() {
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
         
         if (diffDays > 1 && today !== state.streak.lastDate) {
-            state.streak.days = 0; // Seri bozuldu
+            state.streak.days = 0; 
         }
     }
 
@@ -190,7 +186,9 @@ function checkDailyReset() {
 
 // --- NAVIGATION & VIEWS ---
 function navigateto(viewId) {
+    if(!viewSections) return;
     try {
+        // Toggling display values directly prevents layout shifts caused by overlapping tailwind classes
         viewSections.forEach(sec => {
             if(sec.id === 'view-' + viewId) {
                 sec.style.display = 'flex';
@@ -199,15 +197,42 @@ function navigateto(viewId) {
             }
         });
 
-        navButtons.forEach(btn => {
-            if(btn.dataset.target === viewId) {
-                btn.classList.add('text-blue-500');
-                btn.classList.remove('text-slate-500');
-            } else {
-                btn.classList.remove('text-blue-500');
-                btn.classList.add('text-slate-500');
+        if(navButtons) {
+            navButtons.forEach(btn => {
+                if(btn.dataset.target === viewId) {
+                    btn.classList.add('text-blue-500');
+                    btn.classList.remove('text-slate-500');
+                } else if (btn.dataset.target) {
+                    btn.classList.remove('text-blue-500');
+                    btn.classList.add('text-slate-500');
+                }
+            });
+        }
+        
+        // Dynamically update the header title clamping
+        const headerTitle = document.getElementById('header-title');
+        const headerSubtitle = document.getElementById('header-subtitle');
+        if(headerTitle && headerSubtitle) {
+            if(viewId === 'dashboard') {
+                headerTitle.textContent = `Hoş geldin, ${state.user.name.split(' ')[0]}`;
+                headerSubtitle.textContent = "Bugün nasılsın?";
+            } else if(viewId === 'workout') {
+                headerTitle.textContent = "Antrenman";
+                headerSubtitle.textContent = "Programını seç.";
+            } else if(viewId === 'tracker') {
+                headerTitle.textContent = "Su & Kalori";
+                headerSubtitle.textContent = "Tüketimini izle.";
+            } else if(viewId === 'stats') {
+                headerTitle.textContent = "Durum";
+                headerSubtitle.textContent = "Gelişimini takip et.";
+            } else if(viewId === 'settings') {
+                headerTitle.textContent = "Ayarlar";
+                headerSubtitle.textContent = "Tercihlerim.";
             }
-        });
+        }
+        
+        // Reset scroll position gracefully
+        if(appContent) appContent.scrollTop = 0;
     } catch (err) {
         console.error("Navigation error:", err);
     }
@@ -215,20 +240,17 @@ function navigateto(viewId) {
 
 function showOnboarding() {
     if (onboardingView) onboardingView.style.display = 'flex';
-    if (mainContent) mainContent.style.display = 'none';
-    if (bottomNav) bottomNav.style.display = 'none';
+    if (mainApp) mainApp.style.display = 'none';
 }
 
 function showMainApp() {
     if (onboardingView) onboardingView.style.display = 'none';
-    if (mainContent) mainContent.style.display = 'flex';
-    if (bottomNav) bottomNav.style.display = 'flex';
+    if (mainApp) mainApp.style.display = 'grid'; // Crucial for layout
     navigateto('dashboard');
 }
 
 // --- ONBOARDING ACTIONS ---
 function handleOnboardingSubmit(e) {
-    console.log('FORM TETIKLENDI');
     e.preventDefault();
     try {
         const nameInput = document.getElementById('user-name').value.trim();
@@ -236,7 +258,7 @@ function handleOnboardingSubmit(e) {
         const weightInput = document.getElementById('user-weight').value;
         
         if (!nameInput || !heightInput || !weightInput) {
-            alert("Lütfen İsim, Boy ve Kilo alanlarını doldurduğunuzdan emin olun.");
+            alert("Lütfen alanları tam doldurun.");
             return;
         }
 
@@ -257,8 +279,8 @@ function handleOnboardingSubmit(e) {
         updateUI();
         showMainApp();
     } catch(err) {
-        console.error("Onboarding submission failed:", err);
-        alert('Sistem Hatası: ' + err.message);
+        console.error("Onboarding error:", err);
+        alert('Hata oluştu, tekrar deneyin.');
     }
 }
 
@@ -267,15 +289,21 @@ function updateUI() {
     try {
         if(!state.user.setupComplete) return;
 
-        document.getElementById('display-name').textContent = state.user.name;
-        document.getElementById('streak-days').textContent = state.streak.days;
+        const streakEl = document.getElementById('streak-days');
+        if(streakEl) streakEl.textContent = state.streak.days;
 
-        document.getElementById('water-amount').textContent = state.water.amount;
-        document.getElementById('calorie-amount').textContent = state.calorie.amount;
+        const waterEl = document.getElementById('water-amount');
+        if(waterEl) waterEl.textContent = state.water.amount;
+
+        const calEl = document.getElementById('calorie-amount');
+        if(calEl) calEl.textContent = state.calorie.amount;
         
         const waterGoal = 3000; 
-        let pct = Math.min((state.water.amount / waterGoal) * 100, 100);
-        document.getElementById('water-progress-bg').style.height = `${pct}%`;
+        const waterBg = document.getElementById('water-progress-bg');
+        if(waterBg) {
+            let pct = Math.min((state.water.amount / waterGoal) * 100, 100);
+            waterBg.style.height = `${pct}%`;
+        }
 
         renderWorkouts();
         renderWeightChart();
@@ -287,19 +315,20 @@ function updateUI() {
 // --- WORKOUT LOGIC ---
 function renderWorkouts() {
     const list = document.getElementById('program-list');
+    if(!list) return;
     list.innerHTML = '';
     
     const allProgs = [...defaultPrograms, ...customPrograms];
     
     allProgs.forEach(prog => {
         const div = document.createElement('div');
-        div.className = 'glass rounded-2xl p-4 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors border-l-4 border-l-transparent hover:border-l-blue-500';
+        div.className = 'glass glass-apple rounded-2xl p-4 flex justify-between items-center cursor-pointer hover:bg-white/5 transition-colors border-l-4 border-l-transparent hover:border-l-blue-500 gap-3';
         div.innerHTML = `
-            <div>
-                <h3 class="font-bold text-white text-base">${prog.title}</h3>
-                <p class="text-xs text-slate-400 mt-1">${prog.desc || prog.exercises.length + ' Egzersiz'}</p>
+            <div class="flex flex-col gap-1 min-w-0">
+                <h3 class="font-bold text-white text-base truncate">${prog.title}</h3>
+                <p class="text-[11px] leading-tight text-slate-400 line-clamp-2">${prog.desc || prog.exercises.length + ' Egzersiz'}</p>
             </div>
-            <button onclick="startWorkout('${prog.id}')" class="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 p-2 rounded-xl transition-colors">
+            <button onclick="startWorkout('${prog.id}')" class="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 p-3 rounded-xl transition-colors shrink-0 flex items-center justify-center nav-btn">
                 <i data-lucide="play" class="w-5 h-5"></i>
             </button>
         `;
@@ -313,29 +342,31 @@ function startWorkout(progId) {
     const prog = allProgs.find(p => p.id === progId);
     if(!prog) return;
 
-    document.getElementById('active-workout-title').textContent = prog.title;
+    const titleEl = document.getElementById('active-workout-title');
+    if(titleEl) titleEl.textContent = prog.title;
     
     const list = document.getElementById('active-exercise-list');
+    if(!list) return;
     list.innerHTML = '';
     
     prog.exercises.forEach((ex, idx) => {
         const div = document.createElement('div');
-        div.className = 'bg-slate-800/50 rounded-xl p-4 ml-6 relative';
+        div.className = 'bg-slate-800/50 rounded-xl p-4 ml-6 relative flex flex-col gap-3';
         
         const dot = document.createElement('div');
-        dot.className = 'absolute -left-[35px] top-5 w-4 h-4 rounded-full bg-slate-700 border-4 border-slate-900 z-10 transition-colors';
+        dot.className = 'absolute -left-[35px] top-6 w-4 h-4 rounded-full bg-slate-700 border-4 border-slate-900 z-10 transition-colors';
         div.appendChild(dot);
 
-        let timeBtn = ex.time ? `<button onclick="triggerTimer(${ex.time})" class="mt-3 bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 flex items-center gap-1 transition-colors"><i data-lucide="timer" class="w-3 h-3"></i> ${ex.time}s Dinlenme</button>` : '';
+        let timeBtn = ex.time ? `<button onclick="triggerTimer(${ex.time})" class="bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 flex items-center justify-center gap-2 transition-colors nav-btn"><i data-lucide="timer" class="w-4 h-4"></i> ${ex.time}s Dinlenme</button>` : '';
 
         div.innerHTML += `
-            <div class="flex justify-between items-start">
-                <div>
-                    <h4 class="font-bold text-slate-100">${ex.name}</h4>
-                    <p class="text-sm text-slate-400 mt-1">${ex.sets} Set x ${ex.reps}</p>
+            <div class="flex justify-between items-start gap-4 p-1">
+                <div class="flex flex-col gap-1 min-w-0">
+                    <h4 class="font-bold text-slate-100 truncate">${ex.name}</h4>
+                    <p class="text-sm text-slate-400">${ex.sets} Set x ${ex.reps}</p>
                 </div>
-                <button onclick="toggleExerciseComplete(this, ${idx})" class="w-8 h-8 rounded-full border-2 border-slate-600 flex items-center justify-center text-slate-600 hover:bg-green-500 hover:text-white hover:border-green-500 transition-colors">
-                    <i data-lucide="check" class="w-4 h-4"></i>
+                <button onclick="toggleExerciseComplete(this, ${idx})" class="w-10 h-10 shrink-0 rounded-full border-2 border-slate-600 flex items-center justify-center text-slate-600 hover:bg-green-500 hover:text-white hover:border-green-500 transition-colors nav-btn">
+                    <i data-lucide="check" class="w-5 h-5"></i>
                 </button>
             </div>
             ${timeBtn}
@@ -343,7 +374,7 @@ function startWorkout(progId) {
         list.appendChild(div);
     });
 
-    document.getElementById('view-active-workout').classList.remove('hidden');
+    navigateto('active-workout');
     initIcons();
 }
 
@@ -371,76 +402,9 @@ function toggleExerciseComplete(btn, idx) {
 }
 
 function closeActiveWorkout() {
-    document.getElementById('view-active-workout').classList.add('hidden');
+    navigateto('workout');
     stopTimer();
     hideTimerPanel();
-}
-
-function openCustomWorkoutModal() {
-    document.getElementById('view-custom-workout').classList.remove('hidden');
-    document.getElementById('custom-ex-list').innerHTML = '';
-    document.getElementById('custom-prog-name').value = '';
-    addCustomExerciseRow();
-}
-
-function closeCustomWorkoutModal() {
-    document.getElementById('view-custom-workout').classList.add('hidden');
-}
-
-function addCustomExerciseRow() {
-    const list = document.getElementById('custom-ex-list');
-    const div = document.createElement('div');
-    div.className = 'glass p-3 rounded-xl flex flex-col gap-2 relative';
-    div.innerHTML = `
-        <button type="button" onclick="this.parentElement.remove()" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1"><i data-lucide="x" class="w-3 h-3"></i></button>
-        <input type="text" class="ex-name w-full bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="Hareket Adı (örn: Push Up)">
-        <div class="flex gap-2">
-            <input type="number" class="ex-sets flex-1 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="Set">
-            <input type="text" class="ex-reps flex-1 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="Tekrar">
-            <input type="number" class="ex-time flex-1 bg-slate-800/50 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white" placeholder="Sn (Zaman)">
-        </div>
-    `;
-    list.appendChild(div);
-    initIcons();
-}
-
-function saveCustomProgram() {
-    const title = document.getElementById('custom-prog-name').value.trim();
-    if(!title) {
-        alert("Lütfen program adı girin.");
-        return;
-    }
-
-    const rows = document.querySelectorAll('#custom-ex-list > div');
-    const exercises = [];
-    rows.forEach(r => {
-        const name = r.querySelector('.ex-name').value;
-        const sets = parseInt(r.querySelector('.ex-sets').value) || 1;
-        const reps = r.querySelector('.ex-reps').value || '1';
-        const timeVal = parseInt(r.querySelector('.ex-time').value);
-        const time = isNaN(timeVal) ? null : timeVal;
-        
-        if (name) {
-            exercises.push({name, sets, reps, time});
-        }
-    });
-
-    if (exercises.length === 0) {
-        alert("En az bir egzersiz girmelisiniz.");
-        return;
-    }
-
-    const newProg = {
-        id: 'c_' + Date.now(),
-        title,
-        desc: 'Özel Antrenman',
-        exercises
-    };
-
-    customPrograms.push(newProg);
-    saveCustomPrograms();
-    renderWorkouts();
-    closeCustomWorkoutModal();
 }
 
 // --- TIMER LOGIC ---
@@ -481,16 +445,23 @@ function stopTimer() {
 }
 
 function updateTimerDisplay(s) {
+    if(!timerDisplay) return;
     const mins = Math.floor(s / 60).toString().padStart(2, '0');
     const secs = (s % 60).toString().padStart(2, '0');
     timerDisplay.textContent = `${mins}:${secs}`;
 }
 
 function showTimerPanel() {
-    timerPanel.classList.remove('translate-y-full');
+    if(!timerPanel) return;
+    timerPanel.style.opacity = '1';
+    timerPanel.style.pointerEvents = 'auto';
+    timerPanel.classList.remove('translate-y-[200%]');
 }
 function hideTimerPanel() {
-    timerPanel.classList.add('translate-y-full');
+    if(!timerPanel) return;
+    timerPanel.style.opacity = '0';
+    timerPanel.style.pointerEvents = 'none';
+    timerPanel.classList.add('translate-y-[200%]');
 }
 
 // --- TRACKER LOGIC ---
@@ -501,7 +472,7 @@ function addWater(ml) {
 }
 
 function openCustomWaterMenu() {
-    const amt = prompt("Kaç ml su içtiniz?", "500");
+    const amt = prompt("Özel Matara Miktarı (ml) nedir?", "750");
     if(amt && !isNaN(amt)) {
         addWater(parseInt(amt));
     }
@@ -509,6 +480,7 @@ function openCustomWaterMenu() {
 
 function addCalorie() {
     const input = document.getElementById('calorie-input');
+    if(!input) return;
     const cal = parseInt(input.value);
     if(cal && !isNaN(cal)) {
         state.calorie.amount += cal;
@@ -521,6 +493,7 @@ function addCalorie() {
 // --- STATS LOGIC ---
 function renderWeightChart() {
     const chart = document.getElementById('weight-chart');
+    if(!chart) return;
     chart.innerHTML = '';
     
     if(state.weightHistory.length === 0) return;
@@ -531,9 +504,9 @@ function renderWeightChart() {
     recent.forEach(item => {
         const heightPct = Math.max(10, (item.weight / maxWeight) * 100);
         const col = document.createElement('div');
-        col.className = 'flex flex-col items-center flex-1 gap-1';
+        col.className = 'flex flex-col items-center flex-1 gap-1 min-w-0';
         col.innerHTML = `
-            <span class="text-[10px] text-blue-400 font-medium">${item.weight}</span>
+            <span class="text-[10px] text-blue-400 font-medium truncate">${item.weight}</span>
             <div class="w-full bg-blue-500/50 rounded-t-sm transition-all duration-700" style="height: ${heightPct}px"></div>
             <span class="text-[9px] text-slate-500 mt-1 truncate max-w-full">${item.date.substring(5)}</span>
         `;
@@ -571,15 +544,10 @@ function openProfileEdit() {
 }
 
 function confirmReset() {
-    try {
-        if(confirm("Emin misiniz? Tüm ilerlemeleriniz, profiliniz ve serileriniz kalıcı olarak silinecektir.")) {
-            localStorage.removeItem('fitnessAppState');
-            localStorage.removeItem('fitnessCustomPrograms');
-            window.location.reload();
-        }
-    } catch(err) {
-        console.error("Sıfırlama sırasında hata oluştu:", err);
-        alert("Bir hata oluştu, lütfen uygulamayı yenileyip tekrar deneyin.");
+    if(confirm("Emin misiniz? Tüm ilerlemeleriniz tamamen silinecektir.")) {
+        localStorage.removeItem('fitnessAppStateMaster');
+        localStorage.removeItem('fitnessCustomProgramsMaster');
+        window.location.reload();
     }
 }
 
@@ -589,47 +557,3 @@ if (document.readyState === 'loading') {
 } else {
     init();
 }
-
-// --- E2E OTOMATIK TEST ---
-setTimeout(() => {
-    try {
-        if (state && state.user && !state.user.setupComplete) {
-            console.log("TEST BAŞLIYOR...");
-            const nameInput = document.getElementById('user-name');
-            const heightInput = document.getElementById('user-height');
-            const weightInput = document.getElementById('user-weight');
-            const targetInput = document.getElementById('user-target-weight');
-            const form = document.getElementById('onboarding-form');
-            
-            if (nameInput && heightInput && weightInput && form) {
-                nameInput.value = 'Test';
-                heightInput.value = '180';
-                weightInput.value = '80';
-                if(targetInput) targetInput.value = '75';
-                
-                const submitBtn = form.querySelector('button[type="submit"]');
-                if(submitBtn) submitBtn.click();
-                
-                setTimeout(() => {
-                    const mainElement = document.getElementById('main-content');
-                    if (mainElement && mainElement.style.display === 'flex') {
-                        console.log("TEST OK: Onboarding Geçişi Başarılı");
-                        
-                        const btnAntrenman = document.querySelector('button[data-target="workout"]');
-                        if(btnAntrenman) { btnAntrenman.click(); console.log("TEST OK: Antrenman Menüsü Açıldı"); }
-                        
-                        const btnSu = document.querySelector('button[data-target="tracker"]');
-                        if(btnSu) { btnSu.click(); console.log("TEST OK: Su/Kalori Menüsü Açıldı"); }
-                        
-                        const btnStat = document.querySelector('button[data-target="stats"]');
-                        if(btnStat) { btnStat.click(); console.log("TEST OK: İstatistik Menüsü Açıldı"); }
-                    } else {
-                        console.error("TEST FAILED: Onboarding Geçişi BAŞARISIZ");
-                    }
-                }, 500);
-            }
-        }
-    } catch (err) {
-        console.error("E2E Test Hatası:", err);
-    }
-}, 1000);

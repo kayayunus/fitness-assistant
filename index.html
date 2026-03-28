@@ -10,329 +10,240 @@
 </head>
 <body class="bg-slate-950 text-slate-100 h-screen w-full overflow-hidden flex flex-col items-center justify-center selection:bg-blue-500/30">
 
-    <!-- Container that enforces mobile constraint -->
-    <div id="app-container" class="w-full h-full max-w-md mx-auto relative flex flex-col bg-slate-900 shadow-2xl overflow-hidden">
-        
-        <!-- ONBOARDING OVERLAY -->
-        <div id="onboarding" class="absolute inset-0 z-50 bg-slate-950 flex flex-col p-6 overflow-y-auto no-scrollbar transition-opacity duration-300">
-            <div class="flex-1 flex flex-col justify-center gap-6">
-                <div class="text-center mb-4">
-                    <i data-lucide="activity" class="w-16 h-16 mx-auto mb-4 text-blue-500"></i>
-                    <h1 class="text-3xl font-bold tracking-tight text-white mb-2">Fitness Assistant</h1>
-                    <p class="text-slate-400 text-sm">İlk kurulum için bilgilerinizi girin.</p>
-                </div>
-                
-                <form id="onboarding-form" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1 ml-1" for="user-name">Adın Ne?</label>
-                        <input type="text" id="user-name" required class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-500" placeholder="Adınız">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1 ml-1" for="user-height">Boy (cm)</label>
-                            <input type="number" id="user-height" required min="100" max="250" class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-500" placeholder="175">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1 ml-1" for="user-weight">Kilo (kg)</label>
-                            <input type="number" id="user-weight" required min="30" max="300" step="0.1" class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-500" placeholder="70">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1 ml-1" for="user-target-weight">Hedef Kilo (kg)</label>
-                        <input type="number" id="user-target-weight" required min="30" max="300" step="0.1" class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-500" placeholder="65">
-                    </div>
-                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold rounded-xl py-4 mt-4 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20">
-                        <span>Başla</span>
-                        <i data-lucide="arrow-right" class="w-5 h-5"></i>
-                    </button>
-                </form>
+    <!-- ONBOARDING -->
+    <div id="onboarding-view" class="w-full h-full max-w-md mx-auto relative flex-col bg-slate-950 p-6 overflow-y-auto no-scrollbar" style="display: flex;">
+        <div class="flex-1 flex flex-col justify-center gap-6">
+            <div class="text-center mb-4 flex flex-col gap-2">
+                <i data-lucide="activity" class="w-16 h-16 mx-auto mb-2 text-blue-500"></i>
+                <h1 class="text-3xl font-bold tracking-tight text-white m-0">Fitness Assistant</h1>
+                <p class="text-slate-400 text-sm m-0">İlk kurulum için bilgilerinizi girin.</p>
             </div>
+            
+            <form id="onboarding-form" class="flex flex-col gap-4">
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-medium text-slate-400 ml-1" for="user-name">Adın Ne?</label>
+                    <input type="text" id="user-name" required class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-500" placeholder="Adınız">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-medium text-slate-400 ml-1" for="user-height">Boy (cm)</label>
+                        <input type="number" id="user-height" required min="100" max="250" class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-500" placeholder="175">
+                    </div>
+                    <div class="flex flex-col gap-1">
+                        <label class="text-xs font-medium text-slate-400 ml-1" for="user-weight">Kilo (kg)</label>
+                        <input type="number" id="user-weight" required min="30" max="300" step="0.1" class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-500" placeholder="70">
+                    </div>
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs font-medium text-slate-400 ml-1" for="user-target-weight">Hedef Kilo (kg)</label>
+                    <input type="number" id="user-target-weight" required min="30" max="300" step="0.1" class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-base text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-500" placeholder="65">
+                </div>
+                <!-- Flex-col ve Gap kullanımı kural 1'i uygulamak içindir -->
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold rounded-xl py-4 mt-6 transition-all flex items-center justify-center gap-2 shadow-lg shadow-blue-500/20">
+                    <span>Başla</span>
+                    <i data-lucide="arrow-right" class="w-5 h-5"></i>
+                </button>
+            </form>
         </div>
+    </div>
 
-        <!-- MAIN LAYOUT -->
-        <main id="main-content" class="flex-1 overflow-y-auto no-scrollbar relative z-10 hidden pb-24">
+    <!-- MAIN APP GRID LAYOUT -->
+    <div id="main-app" class="w-full h-full max-w-md mx-auto relative bg-slate-900 shadow-2xl" id="app-container" style="display: none; grid-template-rows: auto 1fr auto;">
+        
+        <!-- HEADER -->
+        <header id="app-header" class="pt-safe px-5 pb-3 glass-active z-20 sticky top-0 flex justify-between items-end border-b border-white/10">
+            <div class="flex flex-col gap-1 w-full min-w-0 pr-2">
+                <h2 id="header-title" class="text-2xl font-bold text-white truncate">Fitness Assistant</h2>
+                <p id="header-subtitle" class="text-slate-400 text-sm truncate">Bugün nasılsın?</p>
+            </div>
+            <button onclick="navigateto('settings')" class="p-2 glass rounded-full text-slate-400 hover:text-white transition-colors shrink-0 nav-btn flex items-center justify-center">
+                <i data-lucide="settings" class="w-5 h-5"></i>
+            </button>
+        </header>
+
+        <!-- SCROLLABLE CONTENT AREA -->
+        <main id="app-content" class="scroll-area p-5 relative z-10 w-full flex flex-col gap-6">
             
             <!-- Dashboard View -->
-            <section id="view-dashboard" class="view-section p-5 flex flex-col gap-6 w-full animate-fade-in hidden">
-                <header class="pt-2 flex justify-between items-start">
-                    <div>
-                        <h2 class="text-2xl font-bold text-white mb-1">Hoş geldin, <span id="display-name" class="text-blue-400"></span></h2>
-                        <p class="text-slate-400 text-sm">Bugün sınırlarını zorlamaya hazır mısın?</p>
-                    </div>
-                    <button onclick="navigateto('settings')" class="p-2 glass rounded-full text-slate-400 hover:text-white transition-colors">
-                        <i data-lucide="settings" class="w-5 h-5"></i>
-                    </button>
-                </header>
-
-                <!-- Streak Card -->
-                <div class="glass rounded-2xl p-5 flex items-center justify-between">
-                    <div>
-                        <h3 class="text-sm font-medium text-slate-300 flex items-center gap-2 mb-1">
-                            <i data-lucide="flame" class="w-4 h-4 text-orange-500"></i> Mevcut Seri (Streak)
+            <section id="view-dashboard" class="flex flex-col gap-6 w-full animate-fade-in" style="display: flex;">
+                <div class="glass glass-apple rounded-2xl p-5 flex items-center justify-between gap-4">
+                    <div class="flex flex-col gap-1 min-w-0">
+                        <h3 class="text-sm font-medium text-slate-300 flex items-center gap-2 truncate">
+                            <i data-lucide="flame" class="w-4 h-4 text-orange-500 shrink-0"></i> Mevcut Seri
                         </h3>
-                        <p class="text-3xl font-bold text-white"><span id="streak-days">0</span> <span class="text-lg text-slate-400 font-normal">gün</span></p>
+                        <p class="text-3xl font-bold text-white truncate"><span id="streak-days">0</span> <span class="text-lg text-slate-400 font-normal">gün</span></p>
                     </div>
-                    <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center border border-orange-500/30">
+                    <div class="w-12 h-12 rounded-full bg-orange-500/20 flex items-center justify-center border border-orange-500/30 shrink-0">
                         <i data-lucide="calendar" class="w-6 h-6 text-orange-500"></i>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
-                    <button onclick="navigateto('workout')" class="glass hover:bg-white/10 active:glass-active rounded-2xl p-4 flex flex-col gap-3 transition-colors text-left">
-                        <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center">
+                    <button onclick="navigateto('workout')" class="glass glass-apple hover:bg-white/10 active:glass-active rounded-2xl p-4 flex flex-col gap-3 transition-colors text-left nav-btn">
+                        <div class="w-10 h-10 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
                             <i data-lucide="dumbbell" class="w-5 h-5"></i>
                         </div>
-                        <div>
-                            <h4 class="font-semibold text-white">Antrenman</h4>
-                            <p class="text-xs text-slate-400 mt-1">Günün programı hazır.</p>
+                        <div class="flex flex-col gap-1 min-w-0">
+                            <h4 class="font-semibold text-white truncate">Antrenman</h4>
+                            <p class="text-xs text-slate-400 truncate">Günün programı.</p>
                         </div>
                     </button>
-                    <button onclick="navigateto('tracker')" class="glass hover:bg-white/10 active:glass-active rounded-2xl p-4 flex flex-col gap-3 transition-colors text-left">
-                        <div class="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center">
+                    <button onclick="navigateto('tracker')" class="glass glass-apple hover:bg-white/10 active:glass-active rounded-2xl p-4 flex flex-col gap-3 transition-colors text-left nav-btn">
+                        <div class="w-10 h-10 rounded-full bg-cyan-500/20 text-cyan-400 flex items-center justify-center shrink-0">
                             <i data-lucide="droplet" class="w-5 h-5"></i>
                         </div>
-                        <div>
-                            <h4 class="font-semibold text-white">Su / Kalori</h4>
-                            <p class="text-xs text-slate-400 mt-1">Beslenmeni kaydet.</p>
+                        <div class="flex flex-col gap-1 min-w-0">
+                            <h4 class="font-semibold text-white truncate">Su / Kalori</h4>
+                            <p class="text-xs text-slate-400 truncate">Beslenmeni kaydet.</p>
                         </div>
                     </button>
                 </div>
             </section>
 
             <!-- Workout View -->
-            <section id="view-workout" class="view-section p-5 flex flex-col gap-5 w-full hidden">
-                <header class="pt-2 sticky top-0 bg-slate-900/80 backdrop-blur-md z-20 pb-2">
-                    <h2 class="text-2xl font-bold text-white mb-1">Antrenman</h2>
-                    <p class="text-slate-400 text-sm">Programını seç ve başla.</p>
-                </header>
-
-                <div id="program-list" class="flex flex-col gap-3">
-                    <!-- Dinamik Program Kartları Buraya Gelecek -->
+            <section id="view-workout" class="flex flex-col gap-5 w-full animate-fade-in" style="display: none;">
+                <div id="program-list" class="flex flex-col gap-4">
+                    <!-- Dinamik Program Kartları -->
                 </div>
-
-                <button onclick="openCustomWorkoutModal()" class="w-full glass border-dashed border-slate-600 hover:border-blue-500/50 rounded-2xl p-4 flex items-center justify-center gap-2 text-slate-300 hover:text-blue-400 transition-colors">
-                    <i data-lucide="plus" class="w-5 h-5"></i>
-                    <span class="font-medium text-sm">Kendi Programını Ekle</span>
-                </button>
             </section>
 
             <!-- Active Workout View (Timer & Reps) -->
-            <section id="view-active-workout" class="view-section h-full flex flex-col hidden absolute inset-0 z-30 bg-slate-900 overflow-hidden">
-                <div class="p-5 flex flex-col h-full relative">
-                    <div class="flex items-center justify-between mb-8 pt-2">
-                        <button onclick="closeActiveWorkout()" class="p-2 rounded-full glass hover:bg-white/10 text-slate-300">
-                            <i data-lucide="chevron-left" class="w-6 h-6"></i>
-                        </button>
-                        <h2 id="active-workout-title" class="text-lg font-bold text-white flex-1 text-center truncate px-2">Program Adı</h2>
-                        <div class="w-10"></div> <!-- Spacer -->
-                    </div>
-
-                    <div class="flex-1 overflow-y-auto no-scrollbar pb-40">
-                        <div id="active-exercise-list" class="flex flex-col gap-4 relative pl-4 border-l-2 border-slate-800">
-                            <!-- Egzersiz Öğeleri Buraya Gelecek -->
-                        </div>
-                    </div>
+            <section id="view-active-workout" class="flex flex-col gap-5 w-full animate-fade-in" style="display: none;">
+                <div class="flex items-center justify-between mb-2 gap-3">
+                    <button onclick="closeActiveWorkout()" class="p-2 rounded-full glass hover:bg-white/10 text-slate-300 shrink-0 nav-btn flex items-center justify-center">
+                        <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                    </button>
+                    <h2 id="active-workout-title" class="text-lg font-bold text-white flex-1 text-center truncate">Program</h2>
+                    <div class="w-12 shrink-0"></div> <!-- Spacer for perfect centering -->
                 </div>
 
-                <!-- Timer Overlay Panel (Bottom) -->
-                <div id="timer-panel" class="absolute bottom-0 left-0 right-0 glass border-t border-white/10 rounded-t-3xl p-6 transform translate-y-full transition-transform duration-300 z-40 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
-                    <div class="flex flex-col items-center">
-                        <div class="w-12 h-1 bg-white/20 rounded-full mb-6 relative -top-2"></div>
-                        <h3 class="text-slate-400 text-sm font-medium mb-2 uppercase tracking-wide">Dinlenme Sayacı</h3>
-                        <div class="text-6xl font-black text-white mb-6 tabular-nums tracking-tight font-sf" id="timer-display">00:00</div>
-                        <div class="flex gap-4 w-full">
-                            <button onclick="startTimer(60)" class="flex-1 bg-slate-800 hover:bg-slate-700 rounded-xl py-3 font-medium text-slate-300 transition-colors">+60sn</button>
-                            <button onclick="stopTimer()" class="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl py-3 font-medium border border-red-500/30 transition-colors">Durdur</button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Custom Program Overlay -->
-            <section id="view-custom-workout" class="view-section h-full flex flex-col hidden absolute inset-0 z-30 bg-slate-900 overflow-hidden">
-                <div class="p-5 flex flex-col h-full">
-                    <div class="flex items-center justify-between mb-8 pt-2">
-                        <button onclick="closeCustomWorkoutModal()" class="p-2 rounded-full glass hover:bg-white/10 text-slate-300">
-                            <i data-lucide="chevron-left" class="w-6 h-6"></i>
-                        </button>
-                        <h2 class="text-lg font-bold text-white flex-1 text-center">Özel Program</h2>
-                        <div class="w-10"></div>
-                    </div>
-
-                    <div class="flex-1 overflow-y-auto no-scrollbar pb-40 space-y-4">
-                        <div>
-                            <label class="block text-xs font-medium text-slate-400 mb-1 ml-1">Program Adı</label>
-                            <input type="text" id="custom-prog-name" class="w-full bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 transition-all placeholder-slate-500" placeholder="Örn: Sırt & Biceps">
-                        </div>
-
-                        <div class="mt-6">
-                            <h3 class="text-sm font-semibold text-white mb-2 ml-1">Egzersizler</h3>
-                            <div id="custom-ex-list" class="space-y-3"></div>
-                            
-                            <button type="button" onclick="addCustomExerciseRow()" class="mt-3 w-full border-2 border-dashed border-slate-700 rounded-xl py-3 text-slate-400 flex justify-center items-center gap-2 hover:bg-slate-800 transition-colors">
-                                <i data-lucide="plus" class="w-4 h-4"></i> Egzersiz Ekle
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="absolute bottom-0 left-0 right-0 p-5 glass border-t border-white/10">
-                        <button onclick="saveCustomProgram()" class="w-full bg-blue-600 hover:bg-blue-500 text-white rounded-xl py-4 font-semibold shadow-lg transition-colors">Programı Kaydet</button>
-                    </div>
+                <div id="active-exercise-list" class="flex flex-col gap-5 relative pl-4 border-l-2 border-slate-700/50 pb-32">
+                    <!-- Egzersiz Öğeleri -->
                 </div>
             </section>
 
             <!-- Tracker View -->
-            <section id="view-tracker" class="view-section p-5 flex flex-col gap-6 w-full hidden">
-                <header class="pt-2 sticky top-0 bg-slate-900/80 backdrop-blur-md z-20 pb-2">
-                    <h2 class="text-2xl font-bold text-white mb-1">Su ve Kalori</h2>
-                    <p class="text-slate-400 text-sm">Günlük tüketimlerini kaydet.</p>
-                </header>
-
-                <div class="glass rounded-2xl p-5 relative overflow-hidden">
+            <section id="view-tracker" class="flex flex-col gap-6 w-full animate-fade-in" style="display: none;">
+                <div class="glass glass-apple rounded-2xl p-5 relative overflow-hidden flex flex-col gap-4">
                     <div id="water-progress-bg" class="absolute bottom-0 left-0 right-0 bg-cyan-900/40 transition-all duration-500 ease-out z-0" style="height: 0%"></div>
                     
-                    <div class="relative z-10">
-                        <div class="flex items-center justify-between mb-4">
-                            <div class="flex flex-col">
-                                <span class="text-slate-400 text-sm">Alınan Su</span>
-                                <span class="text-2xl font-bold text-white"><span id="water-amount">0</span> <span class="text-base font-normal text-cyan-400">ml</span></span>
+                    <div class="relative z-10 flex flex-col gap-6">
+                        <div class="flex items-center justify-between gap-4">
+                            <div class="flex flex-col gap-1 min-w-0">
+                                <span class="text-slate-400 text-sm truncate">Alınan Su</span>
+                                <span class="text-2xl font-bold text-white truncate"><span id="water-amount">0</span> <span class="text-base font-normal text-cyan-400">ml</span></span>
                             </div>
-                            <i data-lucide="droplet" class="w-8 h-8 text-cyan-400 opacity-80"></i>
+                            <i data-lucide="droplet" class="w-8 h-8 text-cyan-400 opacity-80 shrink-0"></i>
                         </div>
                         
-                        <div class="grid grid-cols-2 gap-3 mt-6">
-                            <button onclick="addWater(200)" class="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 text-cyan-100 rounded-xl py-3 flex items-center justify-center gap-2 transition-colors">
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="addWater(200)" class="bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/30 text-cyan-100 rounded-xl py-3 flex items-center justify-center gap-2 transition-colors nav-btn">
                                 <i data-lucide="glass-water" class="w-4 h-4"></i>
-                                <span>+200 ml</span>
+                                <span class="truncate">+200 ml</span>
                             </button>
-                            <button onclick="openCustomWaterMenu()" class="glass hover:bg-white/10 text-slate-300 rounded-xl py-3 flex items-center justify-center gap-2 transition-colors">
+                            <button onclick="openCustomWaterMenu()" class="glass hover:bg-white/10 text-slate-300 rounded-xl py-3 flex items-center justify-center gap-2 transition-colors nav-btn">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
-                                <span>Özel Şişe</span>
+                                <span class="truncate">Özel Matara</span>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="glass rounded-2xl p-5">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="flex flex-col">
-                            <span class="text-slate-400 text-sm">Günlük Kalori</span>
-                            <span class="text-2xl font-bold text-white"><span id="calorie-amount">0</span> <span class="text-base font-normal text-orange-400">kcal</span></span>
+                <div class="glass glass-apple rounded-2xl p-5 flex flex-col gap-4">
+                    <div class="flex items-center justify-between gap-4">
+                        <div class="flex flex-col gap-1 min-w-0">
+                            <span class="text-slate-400 text-sm truncate">Günlük Kalori</span>
+                            <span class="text-2xl font-bold text-white truncate"><span id="calorie-amount">0</span> <span class="text-base font-normal text-orange-400">kcal</span></span>
                         </div>
-                        <i data-lucide="flame" class="w-8 h-8 text-orange-400 opacity-80"></i>
+                        <i data-lucide="flame" class="w-8 h-8 text-orange-400 opacity-80 shrink-0"></i>
                     </div>
                     
-                    <div class="flex gap-2 mt-4">
-                        <input type="number" id="calorie-input" class="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-slate-500" placeholder="Örn: 500">
-                        <button onclick="addCalorie()" class="bg-orange-600 hover:bg-orange-500 text-white rounded-xl px-4 py-3 font-semibold transition-colors">Ekle</button>
+                    <div class="flex gap-3">
+                        <input type="number" id="calorie-input" class="flex-1 min-w-0 bg-slate-800/50 border border-slate-700/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-500 placeholder-slate-500" placeholder="Örn: 500">
+                        <button onclick="addCalorie()" class="bg-orange-600 hover:bg-orange-500 text-white rounded-xl px-6 py-3 font-semibold transition-colors shrink-0 nav-btn">Ekle</button>
                     </div>
                 </div>
             </section>
 
             <!-- Stats View -->
-            <section id="view-stats" class="view-section p-5 flex flex-col gap-6 w-full hidden">
-                <header class="pt-2 sticky top-0 bg-slate-900/80 backdrop-blur-md z-20 pb-2">
-                    <h2 class="text-2xl font-bold text-white mb-1">İstatistik & Sağlık</h2>
-                    <p class="text-slate-400 text-sm">İlerlemeni ve sağlık bildirimlerini gör.</p>
-                </header>
-
-                <div class="bg-red-500/10 border border-red-500/20 rounded-2xl p-4 flex gap-3 items-start">
-                    <div class="bg-red-500/20 rounded-full p-2 text-red-400 shrink-0">
-                        <i data-lucide="heart-pulse" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h4 class="text-red-400 font-semibold mb-1 text-sm">Önemli Sağlık Uyarısı</h4>
-                        <p class="text-slate-300 text-xs leading-relaxed">Nabız: 120-130 bpm güvenli limit içinde tutulmalıdır. Antrenman sırasında nefesinizi tutmayın, düzenli nefes alıp verin.</p>
-                    </div>
-                </div>
-
-                <div class="glass rounded-2xl p-5">
-                    <h3 class="text-sm font-medium text-slate-300 mb-4 flex items-center gap-2">
-                        <i data-lucide="scale" class="w-4 h-4 text-blue-400"></i> Kilo İlerlemesi
+            <section id="view-stats" class="flex flex-col gap-6 w-full animate-fade-in" style="display: none;">
+                <div class="glass glass-apple rounded-2xl p-5 flex flex-col gap-4">
+                    <h3 class="text-sm font-medium text-slate-300 flex items-center gap-2">
+                        <i data-lucide="scale" class="w-4 h-4 text-blue-400 shrink-0"></i> Kilo İlerlemesi
                     </h3>
                     
-                    <div class="flex justify-between items-end h-32 mb-4 gap-2 px-2" id="weight-chart">
+                    <div class="flex justify-between items-end h-32 gap-2 px-2" id="weight-chart">
                         <!-- Bars dynamically added here -->
                     </div>
                     
-                    <button onclick="updateWeightDialog()" class="w-full bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl py-3 text-sm font-medium text-slate-200 transition-colors">Bugünkü Kilonu Gir</button>
+                    <button onclick="updateWeightDialog()" class="w-full mt-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-xl py-3 text-sm font-medium text-slate-200 transition-colors nav-btn">Bugünkü Kilonu Gir</button>
                 </div>
             </section>
 
             <!-- Settings View -->
-            <section id="view-settings" class="view-section p-5 flex flex-col gap-6 w-full hidden">
-                <header class="pt-2">
-                    <h2 class="text-2xl font-bold text-white mb-1">Ayarlar</h2>
-                    <p class="text-slate-400 text-sm">Profil ve uygulama tercihleri.</p>
-                </header>
-
-                <div class="glass rounded-2xl overflow-hidden divide-y divide-white/5">
-                    <button onclick="openProfileEdit()" class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors text-left">
+            <section id="view-settings" class="flex flex-col gap-6 w-full animate-fade-in" style="display: none;">
+                <div class="glass glass-apple rounded-2xl overflow-hidden flex flex-col divide-y divide-white/5">
+                    <button onclick="openProfileEdit()" class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors text-left nav-btn">
                         <div class="flex items-center gap-3">
-                            <i data-lucide="user" class="w-5 h-5 text-slate-400"></i>
-                            <span class="text-slate-200 font-medium">Profili Düzenle</span>
+                            <i data-lucide="user" class="w-5 h-5 text-slate-400 shrink-0"></i>
+                            <span class="text-slate-200 font-medium truncate">Profili Düzenle</span>
                         </div>
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500"></i>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-slate-500 shrink-0"></i>
                     </button>
-                    <a href="https://github.com/kayayunus" target="_blank" class="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors text-left">
-                        <div class="flex items-center gap-3">
-                            <i data-lucide="github" class="w-5 h-5 text-slate-400"></i>
-                            <span class="text-slate-200 font-medium">Geliştirici (@kayayunus)</span>
-                        </div>
-                        <i data-lucide="external-link" class="w-4 h-4 text-slate-500"></i>
-                    </a>
                 </div>
 
-                <div class="mt-auto pt-8">
-                    <button onclick="confirmReset()" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl py-4 font-semibold transition-colors flex items-center justify-center gap-2">
-                        <i data-lucide="trash-2" class="w-5 h-5"></i>
-                        İlerlemeyi Sıfırla
+                <div class="mt-4 flex flex-col gap-2">
+                    <button onclick="confirmReset()" class="w-full bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl py-4 font-semibold transition-colors flex items-center justify-center gap-2 nav-btn">
+                        <i data-lucide="trash-2" class="w-5 h-5 shrink-0"></i>
+                        Her Şeyi Sıfırla
                     </button>
                 </div>
             </section>
         </main>
 
         <!-- BOTTOM NAVIGATION -->
-        <nav id="bottom-nav" class="absolute bottom-0 left-0 right-0 glass-active border-t border-white/10 pb-safe z-40 hidden">
-            <ul class="flex justify-around items-center px-1 py-2">
-                <li class="flex-1">
-                    <button onclick="navigateto('dashboard')" class="nav-btn w-full flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors" data-target="dashboard">
+        <!-- Fixed at bottom of grid, no overlaps! -->
+        <nav id="bottom-nav" class="pb-safe glass-active border-t border-white/10 z-40 bg-slate-900/95">
+            <ul class="flex justify-around items-center px-1 py-2 m-0 list-none">
+                <li class="flex-1 flex justify-center">
+                    <button onclick="navigateto('dashboard')" class="nav-btn flex flex-col items-center justify-center gap-1 text-blue-500 transition-colors w-full h-full py-1" data-target="dashboard">
                         <i data-lucide="home" class="w-6 h-6"></i>
-                        <span class="text-[10px] font-medium tracking-wide">Ana Sayfa</span>
+                        <span class="text-[10px] font-medium tracking-wide">Ev</span>
                     </button>
                 </li>
-                <li class="flex-1">
-                    <button onclick="navigateto('workout')" class="nav-btn w-full flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors" data-target="workout">
+                <li class="flex-1 flex justify-center">
+                    <button onclick="navigateto('workout')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-300 transition-colors w-full h-full py-1" data-target="workout">
                         <i data-lucide="dumbbell" class="w-6 h-6"></i>
-                        <span class="text-[10px] font-medium tracking-wide">Antrenman</span>
+                        <span class="text-[10px] font-medium tracking-wide">Program</span>
                     </button>
                 </li>
-                <li class="flex-1 relative">
-                    <div class="absolute -top-6 left-1/2 -translate-x-1/2 w-14 h-14 bg-blue-600 rounded-full flex items-center justify-center shadow-lg shadow-blue-500/30 border-4 border-slate-900">
-                        <button onclick="navigateto('workout')" class="text-white">
-                            <i data-lucide="play" class="w-7 h-7 ml-1"></i>
-                        </button>
-                    </div>
-                </li>
-                <li class="flex-1">
-                    <button onclick="navigateto('tracker')" class="nav-btn w-full flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors" data-target="tracker">
+                <li class="flex-1 flex justify-center">
+                    <button onclick="navigateto('tracker')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-300 transition-colors w-full h-full py-1" data-target="tracker">
                         <i data-lucide="droplet" class="w-6 h-6"></i>
                         <span class="text-[10px] font-medium tracking-wide">Su/Kalori</span>
                     </button>
                 </li>
-                <li class="flex-1">
-                    <button onclick="navigateto('stats')" class="nav-btn w-full flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 transition-colors" data-target="stats">
+                <li class="flex-1 flex justify-center">
+                    <button onclick="navigateto('stats')" class="nav-btn flex flex-col items-center justify-center gap-1 text-slate-500 hover:text-slate-300 transition-colors w-full h-full py-1" data-target="stats">
                         <i data-lucide="bar-chart-2" class="w-6 h-6"></i>
-                        <span class="text-[10px] font-medium tracking-wide">İstatistik</span>
+                        <span class="text-[10px] font-medium tracking-wide">Durum</span>
                     </button>
                 </li>
             </ul>
         </nav>
 
-    </div>
+        <!-- Timer Overlay Panel (Absolute positioned within the grid safely) -->
+        <div id="timer-panel" class="absolute bottom-[80px] left-4 right-4 glass-active border border-white/10 rounded-3xl p-6 transform translate-y-[200%] transition-transform duration-300 ease-out z-50 shadow-2xl flex flex-col items-center pointer-events-none opacity-0">
+            <div class="w-12 h-1 bg-white/20 rounded-full mb-4 shrink-0"></div>
+            <h3 class="text-slate-400 text-sm font-medium mb-1 uppercase tracking-wide">Dinlenme Sayacı</h3>
+            <div class="text-6xl font-black text-white mb-5 tabular-nums tracking-tight font-sf max-w-full truncate" id="timer-display">00:00</div>
+            <div class="flex gap-4 w-full justify-center pointer-events-auto">
+                <button onclick="startTimer(60)" class="flex-1 min-w-0 bg-slate-800 hover:bg-slate-700 rounded-xl py-3 font-medium text-slate-300 transition-colors nav-btn">+60s</button>
+                <button onclick="stopTimer()" class="flex-1 min-w-0 bg-red-500/20 hover:bg-red-500/30 text-red-400 rounded-xl py-3 font-medium border border-red-500/30 transition-colors nav-btn">Durdur</button>
+            </div>
+        </div>
 
-    <!-- Modals Overlay Container -->
-    <div id="modal-container" class="absolute inset-0 z-[60] bg-slate-950/80 backdrop-blur-sm hidden flex-col justify-end"></div>
+    </div>
 
     <script src="app.js"></script>
 </body>
