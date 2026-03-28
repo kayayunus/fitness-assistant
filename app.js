@@ -228,6 +228,7 @@ function showMainApp() {
 
 // --- ONBOARDING ACTIONS ---
 function handleOnboardingSubmit(e) {
+    console.log('FORM TETIKLENDI');
     e.preventDefault();
     try {
         const nameInput = document.getElementById('user-name').value.trim();
@@ -482,7 +483,7 @@ function stopTimer() {
 function updateTimerDisplay(s) {
     const mins = Math.floor(s / 60).toString().padStart(2, '0');
     const secs = (s % 60).toString().padStart(2, '0');
-    timerDisplay.textContent = \`\${mins}:\${secs}\`;
+    timerDisplay.textContent = `${mins}:${secs}`;
 }
 
 function showTimerPanel() {
